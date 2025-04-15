@@ -1,3 +1,6 @@
+
+### User Stories ###
+
 **User Story 1:** As a student preparing materials for an upcoming class, I want to be able to search for a textbook link I need by course number and professor, so that I can ensure I get the book that matches my class needs. 
 
 **Exception:** Professor or course does not exist.
