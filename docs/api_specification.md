@@ -1,9 +1,9 @@
 # API Documentation: Textbook Service
 
 ## Endpoint 1: `GET /textbooks/search`
-Retrieves a list of textbooks based on criteria provided in the **query parameters**.
+Retrieves a list of textbooks based on criteria provided in the **request body**.
 
-### Query Parameters:
+### Request Body:
 - `department` (string, optional): Filter textbooks by department.
 - `courseNumber` (string, optional): Filter textbooks by course number.
 - `professor` (string, optional): Filter textbooks by professor's name.
