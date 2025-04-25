@@ -1,4 +1,4 @@
-# 365-api
+# 365-textbook-api
 
 Team:
 - Ivan Alvarez ialvar15@calpoly.edu
