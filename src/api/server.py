@@ -27,7 +27,7 @@ app = FastAPI(
     terms_of_service="http://example.com/terms/",
     contact={
         "name": "PartyGirls",
-        "email": "tbd",
+        "email": "tbd@gmail.com",
     },
     openapi_tags=tags_metadata,
 )
