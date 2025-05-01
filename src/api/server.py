@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from src.api import textbooks
 from starlette.middleware.cors import CORSMiddleware
 
 description = """
