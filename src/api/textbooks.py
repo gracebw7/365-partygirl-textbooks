@@ -20,5 +20,4 @@ def test_db_connection():
 
 @router.get("/")
 def get_textbooks():
-
     return {"message": "textbooks returned successfully."}
