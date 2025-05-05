@@ -20,7 +20,7 @@ class Textbook(BaseModel):
 @router.get("/test-db-connection")
 def test_db_connection():
     # Attempt to connect to the database
-    with db.engine.connect() as connection:
+    with db.engine.begin() as connection:
         # Execute the query
         result = connection.execute(sqlalchemy.text("SELECT 1")).scalar()
         return {"status": "success", "result": result}
@@ -31,7 +31,7 @@ def get_textbooks():
 
 @router.get("/textbooks/{textBookId}")
 def get_textbook_by_id(textBookId: int):
-    with db.engine.connect() as connection:
+    with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
                 """
@@ -58,7 +58,7 @@ class TextbookCreateResponse(BaseModel):
 
 @router.post("/", response_model=TextbookCreateResponse)
 def create_textbook(title: str, author: str, edition: str):
-    with db.engine.connect() as connection:
+    with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
                 """
