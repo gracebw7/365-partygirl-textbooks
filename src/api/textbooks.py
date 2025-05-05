@@ -15,6 +15,7 @@ class Textbook(BaseModel):
     title: str
     author: str
     edition: str
+    
 
 @router.get("/test-db-connection")
 def test_db_connection():
@@ -51,3 +52,21 @@ def get_textbook_by_id(textBookId: int):
             author=result.author,
             edition=result.edition
         )
+    
+class TextbookCreateResponse(BaseModel):
+    textbook_id: int
+
+@router.post("/", response_model=TextbookCreateResponse)
+def create_textbook(title: str, author: str, edition: str):
+    with db.engine.connect() as connection:
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                INSERT INTO textbooks (title, author, edition) 
+                VALUES (:title, :author, :edition) 
+                RETURNING id
+                """), 
+                {"title": title, "author": author, "edition": edition}
+            ).fetchone()
+        return TextbookCreateResponse(textbook_id=result.id)
+    

@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from src.api import textbooks, courses, professors, classes
+from src.api import textbooks, courses, professors, classes, textbook_search
 
 description = """
 Central Coast Cauldrons is the premier ecommerce site for all your alchemical desires.
 """
 tags_metadata = [
     {"name": "textbooks", "description": "textbook transactions."},
+    {"name": "textbook_search", "description": "textbook search."},
 ]
 
 app = FastAPI(
@@ -36,7 +37,7 @@ app.include_router(textbooks.router)
 app.include_router(courses.router)
 app.include_router(professors.router)
 app.include_router(classes.router)
-
+app.include_router(textbook_search.router)
 
 
 @app.get("/")
