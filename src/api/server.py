@@ -3,11 +3,15 @@ from starlette.middleware.cors import CORSMiddleware
 from src.api import textbooks, courses, professors, classes, textbook_search, classbooks
 
 description = """
-Central Coast Cauldrons is the premier ecommerce site for all your alchemical desires.
+365 PartyGirl Textbooks API is designed to facilitate the management and retrieval of free textbooks.
 """
 tags_metadata = [
     {"name": "textbooks", "description": "textbook transactions."},
+    {"name": "courses", "description": "course transactions."},
+    {"name": "professors", "description": "professor transactions."},
+    {"name": "classes", "description": "class transactions."},
     {"name": "textbook_search", "description": "textbook search."},
+    {"name": "classbooks", "description": "classbook transactions."}
 ]
 
 app = FastAPI(
