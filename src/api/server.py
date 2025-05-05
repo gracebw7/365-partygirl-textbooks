@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from src.api import textbooks, courses, professors, classes, textbook_search
+from src.api import textbooks, courses, professors, classes, textbook_search, classbooks
 
 description = """
 Central Coast Cauldrons is the premier ecommerce site for all your alchemical desires.
@@ -38,6 +38,7 @@ app.include_router(courses.router)
 app.include_router(professors.router)
 app.include_router(classes.router)
 app.include_router(textbook_search.router)
+app.include_router(classbooks.router)
 
 
 @app.get("/")
