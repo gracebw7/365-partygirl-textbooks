@@ -5,6 +5,7 @@ from src.api import auth
 from src import database as db
 import sqlalchemy
 from sqlalchemy import update
+from src.api.classes import Class, create_get_class
 
 router = APIRouter(
     prefix="/search",
@@ -17,38 +18,45 @@ class Textbook(BaseModel):
     title: str
     author: str
     edition: str
-    links: str
+    link: List[str]
 
 @router.get("/search", response_model=Textbook)
-def post_search_textbook(department: str, 
-                         courseId: int, 
-                         professorId: int, 
+def post_search_textbook_prof(department: str, 
+                         number: int, 
+                         professorFirst: str, 
+                         professorLast: str,
                          title: str, 
                          author: str,
                          edition: str):
     
+    class_id = create_get_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast))
+    
     with db.engine.begin() as connection:
-        row = connection.execute(
+        t_ids = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT t.Id, t.title, t.author, t.edition, l.url
+                SELECT t.Id, t.title, t.author, t.edition
                 FROM textbooks AS t
-                JOIN links AS l ON t.id = l.textbook_id
-                WHERE EXISTS (
-                    SELECT 1
-                    FROM textbook-classes AS tc
-                    JOIN classes AS c ON c.id = tc.class_id
-                    WHERE tc.textbook_id = t.id AND c.professor_id = :professorId AND c.course_id = :courseId 
-                )
+                JOIN textbook-classes AS tc ON t.id = tc.textbookId
+                WHERE tc.classId = :class_id
                 """
-            ),
-            [{"professorId": professorId,
-            "courseId": courseId}],
-        )     
+            ), [{"class_id": class_id}]
+        )
 
-        t=Textbook(id=row.Id, title=row.title, author=row.author, edition=row.edition, links=row.url)
+        t_list = []
 
-        print(t)
+        for t_id in t_ids:
+            links = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT l.url
+                    FROM links AS l
+                    JOIN textbooks AS t ON l.textbookId = :id
+                    """
+                ), [{"id": t_id.Id}]
+            ).scalars()
 
-        return t
+            t_list.append(Textbook(id=t_id.Id, title=t_id.title, author=t_id.author, edition=t_id.edition, links=links))
+
+        return t_list
  
