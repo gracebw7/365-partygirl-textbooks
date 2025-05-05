@@ -15,6 +15,7 @@ class Textbook(BaseModel):
     title: str
     author: str
     edition: str
+    links: str
 
 @router.get("/test-db-connection")
 def test_db_connection():
