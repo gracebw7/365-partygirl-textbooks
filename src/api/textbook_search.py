@@ -18,7 +18,7 @@ class Textbook(BaseModel):
     title: str
     author: str
     edition: str
-    link: List[str]
+    links: List[str]
 
 @router.get("/search", response_model=Textbook)
 def post_search_textbook_prof(department: str, 
@@ -29,16 +29,16 @@ def post_search_textbook_prof(department: str,
                          author: str,
                          edition: str):
     
-    class_id = create_get_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast))
+    class_id = create_get_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast)).class_id
     
     with db.engine.begin() as connection:
         t_ids = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT t.Id, t.title, t.author, t.edition
+                SELECT t.id, t.title, t.author, t.edition
                 FROM textbooks AS t
-                JOIN textbook-classes AS tc ON t.id = tc.textbookId
-                WHERE tc.classId = :class_id
+                JOIN textbook_classes AS tc ON t.id = tc.textbook_id
+                WHERE tc.class_id = :class_id
                 """
             ), [{"class_id": class_id}]
         )
@@ -46,6 +46,7 @@ def post_search_textbook_prof(department: str,
         t_list = []
 
         for t_id in t_ids:
+            '''
             links = connection.execute(
                 sqlalchemy.text(
                     """
@@ -55,8 +56,13 @@ def post_search_textbook_prof(department: str,
                     """
                 ), [{"id": t_id.Id}]
             ).scalars()
+            '''
 
-            t_list.append(Textbook(id=t_id.Id, title=t_id.title, author=t_id.author, edition=t_id.edition, links=links))
+            t_list.append(Textbook(id=t_id.id, 
+                                   title=t_id.title, 
+                                   author=t_id.author, 
+                                   edition=t_id.edition, 
+                                   links=["fakeLink"],))
 
-        return t_list
+        return t_list[0]
  

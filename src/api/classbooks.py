@@ -25,7 +25,7 @@ def create_classbook(class_id: int, book_id: str):
         ret_id = connection.execute(
             sqlalchemy.text(
                 """
-                INSERT INTO "textbook-classes" (class_id, textbook_id)
+                INSERT INTO "textbook_classes" (class_id, textbook_id)
                 VALUES (:class_id, :book_id)
                 RETURNING id
                 """
