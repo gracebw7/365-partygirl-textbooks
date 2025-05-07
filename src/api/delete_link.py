@@ -1,0 +1,66 @@
+from fastapi import APIRouter, Depends, status
+from pydantic import BaseModel, Field
+import sqlalchemy
+from src.api import auth
+from src import database as db
+
+router = APIRouter(
+    prefix="/delete_link",
+    tags=["delete_link"],
+    dependencies=[Depends(auth.get_api_key)],
+)
+
+@router.post("/{link_id}")
+def request_deletion(link_id: int, description: str):
+    
+    with db.engine.begin() as connection:
+        # Check if the link exists
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id FROM links WHERE id = :link_id
+                """), 
+                {"link_id": link_id}
+            ).fetchone()
+        if result is None:
+            return {"message": f"Link with id {link_id} not found."}
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                INSERT INTO delete_link_requests (link_id, description) 
+                VALUES (:link_id, :description) 
+                RETURNING id
+                """), 
+                {"link_id": link_id, "description": description}
+            ).fetchone()
+        if result is None:
+            return {"message": f"Deletion request for link {link_id} failed."}
+        return {"message": f"Deletion request for link {link_id} created successfully.", "request_id": result.id}
+    
+@router.delete("/{link_id}")
+def delete_link(link_id: int):
+    with db.engine.begin() as connection:
+        # Check if the link exists
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id FROM links WHERE id = :link_id
+                """
+            ),
+            {"link_id": link_id}
+        ).fetchone()
+        
+        if result is None:
+            return {"message": f"Link with id {link_id} not found."}
+        
+        # Delete the link
+        connection.execute(
+            sqlalchemy.text(
+                """
+                DELETE FROM links WHERE id = :link_id
+                """
+            ),
+            {"link_id": link_id}
+        )
+        
+        return {"message": f"Link with id {link_id} deleted successfully."}
