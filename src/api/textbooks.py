@@ -53,7 +53,7 @@ def get_textbook_by_id(textBookId: int):
         )
     
 class TextbookIdResponse(BaseModel):
-    textbook_id: int
+    text_id: int
 
 '''
 class TextbookCreateResponse(BaseModel):
@@ -76,7 +76,7 @@ def create_textbook(title: str, author: str, edition: str):
 
 #attempts to find a textbook with the given attributes, otherwise it creates one
 @router.post("/", response_model=TextbookIdResponse)
-def create_get_professor(text_request:Textbook):
+def create_get_textbook(text_request:Textbook):
 
     with db.engine.begin() as connection:
         ret_id = connection.execute(
@@ -97,7 +97,7 @@ def create_get_professor(text_request:Textbook):
         ret_id = connection.execute(
                 sqlalchemy.text(
                     """
-                    INSERT INTO textbookd (title, author, edition)
+                    INSERT INTO textbooks (title, author, edition)
                     VALUES (:title, :author, :edition)
                     RETURNING id
                     """

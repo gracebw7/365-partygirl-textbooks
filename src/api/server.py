@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from src.api import textbooks, courses, professors, classes, textbook_search, classbooks, delete_link, link
+from src.api import textbooks, courses, professors, classes, textbook_search, classbooks, delete_link, link, schedule
 
 description = """
 365 PartyGirl Textbooks API is designed to facilitate the management and retrieval of free textbooks.
@@ -47,6 +47,7 @@ app.include_router(textbook_search.router)
 app.include_router(classbooks.router)
 app.include_router(delete_link.router)
 app.include_router(link.router)
+app.include_router(schedule.router)
 
 
 @app.get("/")
