@@ -20,7 +20,7 @@ class LinkIdResponse(BaseModel):
 
 
 @router.post("/", response_model=LinkIdResponse)
-def create_classbook(textbook_id: int, url: str):
+def create_link(textbook_id: int, url: str):
     with db.engine.begin() as connection:
         ret_id = connection.execute(
             sqlalchemy.text(
