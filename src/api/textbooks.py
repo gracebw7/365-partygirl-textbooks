@@ -11,7 +11,6 @@ router = APIRouter(
 )
 
 class Textbook(BaseModel):
-    id: int
     title: str
     author: str
     edition: str
@@ -53,6 +52,10 @@ def get_textbook_by_id(textBookId: int):
             edition=result.edition
         )
     
+class TextbookIdResponse(BaseModel):
+    textbook_id: int
+
+'''
 class TextbookCreateResponse(BaseModel):
     textbook_id: int
 
@@ -69,4 +72,64 @@ def create_textbook(title: str, author: str, edition: str):
                 {"title": title, "author": author, "edition": edition}
             ).fetchone()
         return TextbookCreateResponse(textbook_id=result.id)
+'''
+
+#attempts to find a textbook with the given attributes, otherwise it creates one
+@router.post("/", response_model=TextbookIdResponse)
+def create_get_professor(text_request:Textbook):
+
+    with db.engine.begin() as connection:
+        ret_id = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id
+                FROM textbooks
+                WHERE title = :title AND author = :author AND edition = :edition
+                """
+            ),
+            {"title":text_request.title,"author":text_request.author,"edition":text_request.edition},
+        ).scalar_one_or_none()
+
+        if ret_id is not None:
+            return TextbookIdResponse(text_id = ret_id)
+
+    with db.engine.begin() as connection:
+        ret_id = connection.execute(
+                sqlalchemy.text(
+                    """
+                    INSERT INTO textbookd (title, author, edition)
+                    VALUES (:title, :author, :edition)
+                    RETURNING id
+                    """
+                ),
+                {"title":text_request.title,"author":text_request.author,"edition":text_request.edition},
+            ).scalar_one()
     
+    return TextbookIdResponse(text_id = ret_id)
+
+
+class TextbookLinks(BaseModel):
+    links: list[str]
+
+#returns the link relating to a textbook
+@router.get("/{textBookId}/links", response_model=list[str])
+def get_textbook_links(textBookId: int):
+
+    #NOTE: add error checking if id dne
+
+    with db.engine.begin() as connection:
+        links = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT url
+                FROM links
+                WHERE textbook_id = :id
+                """
+            ),
+            {"id":textBookId},
+        ).scalars().all()
+
+    if not links:
+        return []
+
+    return links
