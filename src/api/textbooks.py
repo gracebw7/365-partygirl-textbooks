@@ -92,7 +92,7 @@ def get_textbook_by_id(textBookId: int):
         )
     
 class TextbookIdResponse(BaseModel):
-    text_id: int
+    textbook_id: int
 
 '''
 class TextbookCreateResponse(BaseModel):
