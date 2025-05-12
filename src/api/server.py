@@ -1,19 +1,20 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from src.api import textbooks, courses, professors, classes, textbook_search, classbooks, delete_link, link, schedule
+from src.api import textbooks, courses, professors, classes, textbook_search, classbooks, link, schedule
 
 description = """
 365 PartyGirl Textbooks API is designed to facilitate the management and retrieval of free textbooks.
 """
 tags_metadata = [
     {"name": "textbooks", "description": "textbook transactions."},
+    {"name": "schedule", "description": "schedule transactions."},
+    {"name": "search", "description": "textbook search transactions."},
+    {"name": "links", "description": "link transactions."},
     {"name": "courses", "description": "course transactions."},
     {"name": "professors", "description": "professor transactions."},
     {"name": "classes", "description": "class transactions."},
-    {"name": "textbook_search", "description": "textbook search."},
-    {"name": "classbooks", "description": "classbook transactions."},
-    {"name": "delete_link", "description": "link deletion requests."},
-    {"name": "links", "description": "link transactions."},
+    {"name": "classbooks", "description": "classbook transactions."}
+    
 ]
 
 app = FastAPI(
@@ -40,14 +41,14 @@ app.add_middleware(
 
 # Include routers for different parts of the API (endpoints)
 app.include_router(textbooks.router)
+app.include_router(schedule.router)
+app.include_router(textbook_search.router)
 app.include_router(courses.router)
 app.include_router(professors.router)
 app.include_router(classes.router)
-app.include_router(textbook_search.router)
 app.include_router(classbooks.router)
-app.include_router(delete_link.router)
 app.include_router(link.router)
-app.include_router(schedule.router)
+
 
 
 @app.get("/")
