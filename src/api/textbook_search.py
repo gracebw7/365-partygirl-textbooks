@@ -27,7 +27,8 @@ def post_search_textbook_prof(department: str,
                          professorLast: str):
     
     class_id = create_get_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast)).class_id
-    
+    print(f"{class_id}")
+
     with db.engine.begin() as connection:
         t_ids = connection.execute(
             sqlalchemy.text(
@@ -40,27 +41,31 @@ def post_search_textbook_prof(department: str,
             ), [{"class_id": class_id}]
         )
 
-        if t_ids.scalar_one_or_none() is None:
+        rows = t_ids.all()   
+        print(f"{rows}")
+        if not rows:
             return None
 
         t_list = []
 
-        for t_id in t_ids:
+        for t_id in rows:
             links = connection.execute(
                 sqlalchemy.text(
                     """
                     SELECT l.url
                     FROM links AS l
-                    JOIN textbooks AS t ON l.textbook_id = :id
+                    WHERE l.textbook_id = :id
                     """
                 ), [{"id": t_id.id}]
             ).scalars()
+
+            urls = [url for url in links]
             
             t_list.append(Textbook(id=t_id.id, 
                                    title=t_id.title, 
                                    author=t_id.author, 
                                    edition=t_id.edition, 
-                                   links=links))
+                                   links=urls))
 
         return t_list[0]
 
@@ -90,7 +95,7 @@ def post_search_textbook_prof(title: str,
                     """
                     SELECT l.url
                     FROM links AS l
-                    JOIN textbooks AS t ON l.textbook_id = :id
+                    WHERE l.textbook_id = :id
                     """
                 ), [{"id": ret_id}]
             ).scalars()
