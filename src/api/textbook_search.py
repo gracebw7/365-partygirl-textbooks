@@ -20,14 +20,11 @@ class Textbook(BaseModel):
     edition: str
     links: List[str]
 
-@router.get("/search", response_model=Textbook)
+@router.get("/search_by_prof", response_model=Textbook|None)
 def post_search_textbook_prof(department: str, 
                          number: int, 
                          professorFirst: str, 
-                         professorLast: str,
-                         title: str, 
-                         author: str,
-                         edition: str):
+                         professorLast: str):
     
     class_id = create_get_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast)).class_id
     
@@ -43,26 +40,63 @@ def post_search_textbook_prof(department: str,
             ), [{"class_id": class_id}]
         )
 
+        if t_ids.scalar_one_or_none() is None:
+            return None
+
         t_list = []
 
         for t_id in t_ids:
-            '''
             links = connection.execute(
                 sqlalchemy.text(
                     """
                     SELECT l.url
                     FROM links AS l
-                    JOIN textbooks AS t ON l.textbookId = :id
+                    JOIN textbooks AS t ON l.textbook_id = :id
                     """
-                ), [{"id": t_id.Id}]
+                ), [{"id": t_id.id}]
             ).scalars()
-            '''
-
+            
             t_list.append(Textbook(id=t_id.id, 
                                    title=t_id.title, 
                                    author=t_id.author, 
                                    edition=t_id.edition, 
-                                   links=["fakeLink"],))
+                                   links=links))
 
         return t_list[0]
- 
+
+
+@router.get("/search_by_title", response_model=Textbook|None)
+def post_search_textbook_prof(title: str, 
+                            author: str,
+                            edition: str):
+        
+    with db.engine.begin() as connection:
+        ret_id = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id
+                FROM textbooks
+                WHERE title = :title AND author = :author AND edition = :edition
+                """
+            ),
+            {"title":title,"author":author,"edition":edition},
+        ).scalar_one_or_none()
+
+        if ret_id is None:
+            return None
+
+        links = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT l.url
+                    FROM links AS l
+                    JOIN textbooks AS t ON l.textbook_id = :id
+                    """
+                ), [{"id": ret_id}]
+            ).scalars()
+            
+        return Textbook(id=ret_id, 
+                        title=title, 
+                        author=author, 
+                        edition=edition, 
+                        links=links)
