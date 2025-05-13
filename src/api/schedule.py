@@ -22,7 +22,7 @@ class TextbookReturn(BaseModel):
     edition: str
     links: List[str]
 
-@router.post("/", response_model=List[Textbook])
+@router.post("/", response_model=List[TextbookReturn])
 def find_by_schedule(schedule: List[Class]):
     results = []
     class_ids = []
