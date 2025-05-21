@@ -143,7 +143,6 @@ def create_get_textbook(text_request:Textbook):
         if ret_id is not None:
             return TextbookIdResponse(textbook_id=ret_id)
 
-    with db.engine.begin() as connection:
         ret_id = connection.execute(
                 sqlalchemy.text(
                     """

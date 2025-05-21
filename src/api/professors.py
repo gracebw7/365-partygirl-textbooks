@@ -40,7 +40,6 @@ def create_get_professor(prof_request:Professor):
         if ret_id is not None:
             return ProfessorIdResponse(prof_id = ret_id)
 
-    with db.engine.begin() as connection:
         ret_id = connection.execute(
                 sqlalchemy.text(
                     """

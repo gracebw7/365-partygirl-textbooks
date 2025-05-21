@@ -47,7 +47,6 @@ def create_get_class(class_request:Class):
         if ret_id is not None:
             return ClassIdResponse(class_id = ret_id)
 
-    with db.engine.begin() as connection:
         ret_id = connection.execute(
                 sqlalchemy.text(
                     """
