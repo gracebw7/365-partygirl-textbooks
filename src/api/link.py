@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field
 import sqlalchemy
 from src.api import auth
@@ -20,18 +20,22 @@ class LinkIdResponse(BaseModel):
 
 
 @router.post("/", response_model=LinkIdResponse)
-def create_link(textbook_id: int, url: str):
+def create_link(link:Link):
     with db.engine.begin() as connection:
         # Check if the textbook exists
         result = connection.execute(
             sqlalchemy.text(
                 """
                 SELECT id FROM textbooks WHERE id = :textbook_id
-                """            ),
-            {"textbook_id": textbook_id}
+                """
+            ),
+            {"textbook_id": link.textbook_id}
         ).fetchone()
         if result is None:
-            return {"message": f"Textbook with id {textbook_id} not found."}
+            raise HTTPException(
+                status_code=404,
+                detail=f"Textbook with id {link.textbook_id} not found."
+            )
         
         ret_id = connection.execute(
             sqlalchemy.text(
@@ -41,7 +45,7 @@ def create_link(textbook_id: int, url: str):
                 RETURNING id
                 """
             ),
-            {"textbook_id": textbook_id, "url": url},
+            {"textbook_id": link.textbook_id, "url": link.url},
         ).scalar_one()
 
     return LinkIdResponse(link_id=ret_id)
