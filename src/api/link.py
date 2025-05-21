@@ -22,6 +22,17 @@ class LinkIdResponse(BaseModel):
 @router.post("/", response_model=LinkIdResponse)
 def create_link(textbook_id: int, url: str):
     with db.engine.begin() as connection:
+        # Check if the textbook exists
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id FROM textbooks WHERE id = :textbook_id
+                """            ),
+            {"textbook_id": textbook_id}
+        ).fetchone()
+        if result is None:
+            return {"message": f"Textbook with id {textbook_id} not found."}
+        
         ret_id = connection.execute(
             sqlalchemy.text(
                 """
