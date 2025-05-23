@@ -21,10 +21,12 @@ class Textbook(BaseModel):
     links: List[str]
 
 @router.get("/search_by_prof", response_model=Textbook|None)
-def post_search_textbook_prof(department: str, 
-                         number: int, 
-                         professorFirst: str, 
-                         professorLast: str):
+def post_search_textbook_prof(
+    department: str, 
+    number: int, 
+    professorFirst: str, 
+    professorLast: str
+    ):
     
     class_id = create_get_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast)).class_id
     print(f"{class_id}")
@@ -61,17 +63,20 @@ def post_search_textbook_prof(department: str,
 
             urls = [url for url in links]
             
-            t_list.append(Textbook(id=t_id.id, 
-                                   title=t_id.title, 
-                                   author=t_id.author, 
-                                   edition=t_id.edition, 
-                                   links=urls))
+            t_list.append(
+                Textbook(
+                    id=t_id.id, 
+                    title=t_id.title, 
+                    author=t_id.author, 
+                    edition=t_id.edition, 
+                    links=urls
+                    ))
 
         return t_list[0]
 
 
 @router.get("/search_by_title", response_model=Textbook|None)
-def post_search_textbook_prof(title: str, 
+def post_search_textbook_title(title: str, 
                             author: str,
                             edition: str):
         
@@ -100,8 +105,10 @@ def post_search_textbook_prof(title: str,
                 ), [{"id": ret_id}]
             ).scalars()
             
-        return Textbook(id=ret_id, 
-                        title=title, 
-                        author=author, 
-                        edition=edition, 
-                        links=links)
+        return Textbook(
+                    id=ret_id, 
+                    title=title, 
+                    author=author, 
+                    edition=edition, 
+                    links=links
+                    )
