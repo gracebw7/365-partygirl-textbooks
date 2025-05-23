@@ -20,6 +20,51 @@ class Textbook(BaseModel):
     edition: str
     links: List[str]
 
+@router.get("/search", response_model=List[Textbook]|None)
+def get_search_textbook(department: str = None, 
+                         number: int = None, 
+                         professorFirst: str = None, 
+                         professorLast: str = None,
+                         title: str = None, 
+                         author: str = None,
+                         edition: str = None):
+    
+    stmt = (
+        sqlalchemy.select(
+            db.courses.c.department,
+            db.courses.c.number,
+            db.professors.c.professorFirst,
+            db.professors.c.professorLast,
+            db.textbooks.c.title,
+            db.textbooks.c.author,
+            db.textbooks.c.edition,
+        )
+        .select_from(
+            db.classes
+            .join(db.courses, db.classes.c.course_id == db.courses.c.id)
+            .join(db.professors, db.classes.c.professor_id == db.professors.c.id)
+            .join(db.textbook_classes, db.textbook_classes.c.class_id == db.classes.c.id)
+            .join(db.textbooks, db.textbooks.c.id == db.textbook_classes.c.textbook_id)
+        )
+        .limit(10)
+    )
+
+    with db.engine.connect() as conn:
+        result = conn.execute(stmt)
+        tbooks = []
+        for row in result:
+            tbooks.append(
+                {
+                    "movie_id": row.movie_id,
+                    "movie_title": row.title,
+                    "year": row.year,
+                    "imdb_rating": row.imdb_rating,
+                    "imdb_votes": row.imdb_votes,
+                }
+            )
+
+    return tbooks
+
 @router.get("/search_by_prof", response_model=Textbook|None)
 def post_search_textbook_prof(department: str, 
                          number: int, 
