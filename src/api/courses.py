@@ -40,7 +40,6 @@ def create_get_course(course_request:Course):
         if ret_id is not None:
             return CourseIdResponse(course_id = ret_id)
 
-    with db.engine.begin() as connection:
         ret_id = connection.execute(
                 sqlalchemy.text(
                     """

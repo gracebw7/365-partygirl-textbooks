@@ -26,9 +26,20 @@ def test_db_connection():
         return {"status": "success", "result": result}
 
 
-@router.get("/")
+@router.get("/", response_model=list[Textbook])
 def get_textbooks():
-    return {"message": "textbooks returned successfully."}
+    with db.engine.begin() as connection:
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT 
+                    *
+                FROM 
+                    textbooks 
+                """
+            ) 
+            ).fetchall()
+    return [Textbook(title=row.title, author=row.author, edition=row.edition) for row in result]
 
 class TextbookInputResponse(BaseModel):
     textbook_id: int
@@ -67,7 +78,7 @@ def add_textbook_info(input: TextbookInput):
     )
 
 
-@router.get("/textbooks/{textBookId}")
+@router.get("/textbooks/{textBookId}", response_model=Textbook)
 def get_textbook_by_id(textBookId: int):
     with db.engine.begin() as connection:
         result = connection.execute(
@@ -132,7 +143,6 @@ def create_get_textbook(text_request:Textbook):
         if ret_id is not None:
             return TextbookIdResponse(textbook_id=ret_id)
 
-    with db.engine.begin() as connection:
         ret_id = connection.execute(
                 sqlalchemy.text(
                     """
