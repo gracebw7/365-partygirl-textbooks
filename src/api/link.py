@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 import sqlalchemy
 from src.api import auth
 from src import database as db
@@ -12,7 +12,7 @@ router = APIRouter(
 
 class Link(BaseModel):
     textbook_id: int
-    url: str
+    url: HttpUrl
 
 class LinkIdResponse(BaseModel):
     link_id: int
