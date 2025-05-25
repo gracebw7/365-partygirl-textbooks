@@ -7,8 +7,8 @@ import sqlalchemy
 from src.api import auth
 from src import database as db
 
-from src.api.classes import Class, create_get_class
-from src.api.textbooks import Textbook, create_get_textbook, get_textbook_links, get_textbook_by_id
+from src.api.classes import Class, create_class
+from src.api.textbooks import Textbook, get_textbook_links, get_textbook_by_id
 
 router = APIRouter(
     prefix="/schedule",
@@ -26,26 +26,24 @@ class TextbookReturn(BaseModel):
 def find_by_schedule(schedule: List[Class]):
     results = []
     class_ids = []
-    text_ids = []
 
     for item in schedule: 
         class_ = Class(department=item.department, number=item.number, prof_first=item.prof_first, prof_last=item.prof_last)
-        class_ids.append(create_get_class(class_).class_id)
+        class_ids.append(create_class(class_).class_id)
 
     with db.engine.begin() as connection:
-
-        for class_id in class_ids:
-            text_ids.append(connection.execute(
-                    sqlalchemy.text(
-                        """
-                        SELECT textbook_id
-                        FROM "textbook_classes"
-                        JOIN textbooks ON textbook_id = textbooks.id
-                        WHERE class_id = :class_id
-                        """
-                    ),
-                    {"class_id": class_id},
-                ).scalar_one_or_none() )
+        # Use a single query to get all textbook_ids for the given class_ids
+        text_ids = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT DISTINCT textbook_id
+                FROM textbook_classes
+                JOIN textbooks ON textbook_id = textbooks.id
+                WHERE class_id IN :class_ids
+                """
+            ),
+            {"class_ids": tuple(class_ids)}  # Pass as tuple for SQLAlchemy IN clause
+        ).scalars().all()
         
     for id in text_ids:
         if id is not None:

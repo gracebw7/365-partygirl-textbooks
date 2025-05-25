@@ -5,7 +5,7 @@ from src.api import auth
 from src import database as db
 import sqlalchemy
 from sqlalchemy import update
-from src.api.classes import Class, create_get_class
+from src.api.classes import Class, create_class
 
 router = APIRouter(
     prefix="/search",
@@ -66,14 +66,14 @@ def get_search_textbook(department: str = None,
     return tbooks
 
 @router.get("/search_by_prof", response_model=Textbook|None)
-def post_search_textbook_prof(
+def search_textbook_by_prof(
     department: str, 
     number: int, 
     professorFirst: str, 
     professorLast: str
     ):
     
-    class_id = create_get_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast)).class_id
+    class_id = create_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast)).class_id
     print(f"{class_id}")
 
     with db.engine.begin() as connection:
@@ -117,11 +117,11 @@ def post_search_textbook_prof(
                     links=urls
                     ))
 
-        return t_list[0]
+        return t_list
 
 
 @router.get("/search_by_title", response_model=Textbook|None)
-def post_search_textbook_title(title: str, 
+def search_textbook_by_title(title: str, 
                             author: str,
                             edition: str):
         
