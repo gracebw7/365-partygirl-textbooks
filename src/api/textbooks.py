@@ -16,7 +16,7 @@ class Textbook(BaseModel):
     author: str
     edition: str
 
-@router.get("/get_textbooks", response_model=list[Textbook])
+@router.get("/", response_model=list[Textbook])
 def get_textbooks():
     with db.engine.begin() as connection:
         result = connection.execute(
@@ -51,10 +51,10 @@ class TextbookInput(BaseModel):
 
 @router.post("/all_info", response_model=TextbookInputResponse)
 def add_textbook_info(input: TextbookInput):
-    professor = professors.create_get_professor(professors.Professor(first=input.prof_first, last=input.prof_last))
-    course = courses.create_get_course(courses.Course(department=input.department, number=input.course_number))
-    class_ = classes.create_get_class(classes.Class(department=input.department, number=input.course_number, prof_first=input.prof_first, prof_last=input.prof_last))
-    textbook = create_get_textbook(Textbook(title=input.title, author=input.author, edition=input.edition))
+    professor = professors.create_professor(professors.Professor(first=input.prof_first, last=input.prof_last))
+    course = courses.create_course(courses.Course(department=input.department, number=input.course_number))
+    class_ = classes.create_class(classes.Class(department=input.department, number=input.course_number, prof_first=input.prof_first, prof_last=input.prof_last))
+    textbook = create_textbook(Textbook(title=input.title, author=input.author, edition=input.edition))
     classbook = classbooks.create_classbook(class_id=class_.class_id, book_id=textbook.textbook_id)
     link = links.create_link(textbook_id=textbook.textbook_id, url=input.url)
 
@@ -114,11 +114,10 @@ def create_textbook(title: str, author: str, edition: str):
         return TextbookCreateResponse(textbook_id=result.id)
 '''
 
-#attempts to find a textbook with the given attributes, otherwise it creates one
 @router.post("/", response_model=TextbookIdResponse)
-def create_get_textbook(text_request:Textbook):
-
+def create_textbook(textbook: Textbook):
     with db.engine.begin() as connection:
+        # Check if the textbook already exists
         ret_id = connection.execute(
             sqlalchemy.text(
                 """
@@ -127,23 +126,24 @@ def create_get_textbook(text_request:Textbook):
                 WHERE title = :title AND author = :author AND edition = :edition
                 """
             ),
-            {"title":text_request.title,"author":text_request.author,"edition":text_request.edition},
+            {"title": textbook.title, "author": textbook.author, "edition": textbook.edition},
         ).scalar_one_or_none()
 
         if ret_id is not None:
             return TextbookIdResponse(textbook_id=ret_id)
 
+        # Create a new textbook if it doesn't exist
         ret_id = connection.execute(
-                sqlalchemy.text(
-                    """
-                    INSERT INTO textbooks (title, author, edition)
-                    VALUES (:title, :author, :edition)
-                    RETURNING id
-                    """
-                ),
-                {"title":text_request.title,"author":text_request.author,"edition":text_request.edition},
-            ).scalar_one()
-    
+            sqlalchemy.text(
+                """
+                INSERT INTO textbooks (title, author, edition)
+                VALUES (:title, :author, :edition)
+                RETURNING id
+                """
+            ),
+            {"title": textbook.title, "author": textbook.author, "edition": textbook.edition},
+        ).scalar_one()
+
     return TextbookIdResponse(textbook_id=ret_id)
 
 #returns the link relating to a textbook

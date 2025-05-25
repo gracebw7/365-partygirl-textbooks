@@ -21,10 +21,9 @@ class Course(BaseModel):
 class CourseIdResponse(BaseModel):
     course_id: int
 
-#attempts to find a course with the given attributes, otherwise it creates one
-@router.post("/", response_model=CourseIdResponse)
-def create_get_course(course_request:Course):
 
+@router.post("/", response_model=CourseIdResponse)
+def create_course(course_request:Course):
     with db.engine.begin() as connection:
         ret_id = connection.execute(
             sqlalchemy.text(

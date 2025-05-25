@@ -5,7 +5,7 @@ from src.api import auth
 from src import database as db
 import sqlalchemy
 from sqlalchemy import update
-from src.api.classes import Class, create_get_class
+from src.api.classes import Class, create_class
 
 router = APIRouter(
     prefix="/search",
@@ -73,7 +73,7 @@ def search_textbook_by_prof(
     professorLast: str
     ):
     
-    class_id = create_get_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast)).class_id
+    class_id = create_class(Class(department=department, number=number, prof_first=professorFirst, prof_last=professorLast)).class_id
     print(f"{class_id}")
 
     with db.engine.begin() as connection:

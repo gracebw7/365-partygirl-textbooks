@@ -20,10 +20,8 @@ class Professor(BaseModel):
 class ProfessorIdResponse(BaseModel):
     prof_id: int
 
-
-#attempts to find a professor with the given attributes, otherwise it creates one
 @router.post("/", response_model=ProfessorIdResponse)
-def create_get_professor(prof_request:Professor):
+def create_professor(prof_request:Professor):
 
     with db.engine.begin() as connection:
         ret_id = connection.execute(

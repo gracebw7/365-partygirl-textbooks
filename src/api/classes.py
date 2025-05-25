@@ -8,8 +8,8 @@ import sqlalchemy
 from src.api import auth
 from src import database as db
 
-from src.api.courses import Course, create_get_course
-from src.api.professors import Professor, create_get_professor
+from src.api.courses import Course, create_course
+from src.api.professors import Professor, create_professor
 
 router = APIRouter(
     prefix="/classes",
@@ -28,9 +28,9 @@ class ClassIdResponse(BaseModel):
 
 #attempts to find a class with the given attributes, otherwise it creates one
 @router.post("/", response_model=ClassIdResponse)
-def create_get_class(class_request:Class):
-    course_id = create_get_course(Course(department=class_request.department,number=class_request.number))
-    prof_id = create_get_professor(Professor(first=class_request.prof_first,last=class_request.prof_last))
+def create_class(class_request: Class):
+    course_id = create_course(Course(department=class_request.department, number=class_request.number))
+    prof_id = create_professor(Professor(first=class_request.prof_first, last=class_request.prof_last))
 
     with db.engine.begin() as connection:
         ret_id = connection.execute(
@@ -41,21 +41,21 @@ def create_get_class(class_request:Class):
                 WHERE course_id = :course_id AND professor_id = :professor_id
                 """
             ),
-            {"course_id":course_id.course_id, "professor_id": prof_id.prof_id},
+            {"course_id": course_id.course_id, "professor_id": prof_id.prof_id},
         ).scalar_one_or_none()
 
         if ret_id is not None:
-            return ClassIdResponse(class_id = ret_id)
+            return ClassIdResponse(class_id=ret_id)
 
         ret_id = connection.execute(
-                sqlalchemy.text(
-                    """
-                    INSERT INTO classes (course_id, professor_id)
-                    VALUES (:course_id, :professor_id)
-                    RETURNING id
-                    """
-                ),
-                {"course_id":course_id.course_id, "professor_id": prof_id.prof_id},
-            ).scalar_one()
+            sqlalchemy.text(
+                """
+                INSERT INTO classes (course_id, professor_id)
+                VALUES (:course_id, :professor_id)
+                RETURNING id
+                """
+            ),
+            {"course_id": course_id.course_id, "professor_id": prof_id.prof_id},
+        ).scalar_one()
     
-    return ClassIdResponse(class_id = ret_id)
+    return ClassIdResponse(class_id=ret_id)
