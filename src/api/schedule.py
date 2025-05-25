@@ -29,7 +29,8 @@ def find_by_schedule(schedule: List[Class]):
     text_ids = []
 
     for item in schedule: 
-        class_ids.append(create_get_class(Class(department=item.department,number=item.number,prof_first=item.prof_first,prof_last=item.prof_last)).class_id)
+        class_ = Class(department=item.department, number=item.number, prof_first=item.prof_first, prof_last=item.prof_last)
+        class_ids.append(create_get_class(class_).class_id)
 
     with db.engine.begin() as connection:
 
@@ -50,7 +51,8 @@ def find_by_schedule(schedule: List[Class]):
         if id is not None:
             textbook = get_textbook_by_id(id)
             links = get_textbook_links(id)
-            results.append(TextbookReturn(title=textbook.title,author=textbook.author,edition=textbook.edition,links=links))
+            new_textbook = Textbook(title=textbook.title, author=textbook.author, edition=textbook.edition)
+            results.append(new_textbook)
 
     return results
     

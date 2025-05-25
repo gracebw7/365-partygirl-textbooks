@@ -15,18 +15,8 @@ class Textbook(BaseModel):
     title: str
     author: str
     edition: str
-    
 
-@router.get("/test-db-connection")
-def test_db_connection():
-    # Attempt to connect to the database
-    with db.engine.begin() as connection:
-        # Execute the query
-        result = connection.execute(sqlalchemy.text("SELECT 1")).scalar()
-        return {"status": "success", "result": result}
-
-
-@router.get("/", response_model=list[Textbook])
+@router.get("/get_textbooks", response_model=list[Textbook])
 def get_textbooks():
     with db.engine.begin() as connection:
         result = connection.execute(
@@ -78,7 +68,7 @@ def add_textbook_info(input: TextbookInput):
     )
 
 
-@router.get("/textbooks/{textBookId}", response_model=Textbook)
+@router.get("/{textBookId}", response_model=Textbook)
 def get_textbook_by_id(textBookId: int):
     with db.engine.begin() as connection:
         result = connection.execute(
