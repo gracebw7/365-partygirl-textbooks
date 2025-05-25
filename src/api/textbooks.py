@@ -146,12 +146,6 @@ def create_get_textbook(text_request:Textbook):
     
     return TextbookIdResponse(textbook_id=ret_id)
 
-
-
-
-class TextbookLinks(BaseModel):
-    links: list[str]
-
 #returns the link relating to a textbook
 @router.get("/{textBookId}/links", response_model=list[str])
 def get_textbook_links(textBookId: int):
