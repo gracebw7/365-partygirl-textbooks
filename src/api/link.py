@@ -74,7 +74,10 @@ def request_deletion(link_id: int, description: str):
                 {"link_id": link_id, "description": description}
             ).fetchone()
         if result is None:
-            return {"message": f"Deletion request for link {link_id} failed."}
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to create deletion request for link {link_id}."
+            )
         return {"message": f"Deletion request for link {link_id} created successfully.", "request_id": result.id}
     
 @router.delete("/{link_id}")
@@ -91,7 +94,10 @@ def delete_link(link_id: int):
         ).fetchone()
         
         if result is None:
-            return {"message": f"Link with id {link_id} not found."}
+            raise HTTPException(
+                status_code=404,
+                detail=f"Link with id {link_id} not found."
+            )
         
         # Delete the link
         connection.execute(
