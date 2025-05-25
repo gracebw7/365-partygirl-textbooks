@@ -16,21 +16,6 @@ class Textbook(BaseModel):
     author: str
     edition: str
 
-@router.get("/", response_model=list[Textbook])
-def get_textbooks():
-    with db.engine.begin() as connection:
-        result = connection.execute(
-            sqlalchemy.text(
-                """
-                SELECT 
-                    *
-                FROM 
-                    textbooks 
-                """
-            ) 
-            ).fetchall()
-    return [Textbook(title=row.title, author=row.author, edition=row.edition) for row in result]
-
 class TextbookInputResponse(BaseModel):
     textbook_id: int
     professor_id: int
@@ -49,24 +34,23 @@ class TextbookInput(BaseModel):
     course_number: int
     url: str
 
-@router.post("/all_info", response_model=TextbookInputResponse)
-def add_textbook_info(input: TextbookInput):
-    professor = professors.create_professor(professors.Professor(first=input.prof_first, last=input.prof_last))
-    course = courses.create_course(courses.Course(department=input.department, number=input.course_number))
-    class_ = classes.create_class(classes.Class(department=input.department, number=input.course_number, prof_first=input.prof_first, prof_last=input.prof_last))
-    textbook = create_textbook(Textbook(title=input.title, author=input.author, edition=input.edition))
-    classbook = classbooks.create_classbook(class_id=class_.class_id, book_id=textbook.textbook_id)
-    link = links.create_link(textbook_id=textbook.textbook_id, url=input.url)
+class TextbookIdResponse(BaseModel):
+    textbook_id: int
 
-    return TextbookInputResponse(
-        textbook_id=textbook.textbook_id,
-        professor_id=professor.prof_id,
-        course_id=course.course_id,
-        class_id=class_.class_id,
-        classbook_id=classbook.classbook_id,
-        link_id=link.link_id
-    )
-
+@router.get("/", response_model=list[Textbook])
+def get_textbooks():
+    with db.engine.begin() as connection:
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT 
+                    *
+                FROM 
+                    textbooks 
+                """
+            ) 
+            ).fetchall()
+    return [Textbook(title=row.title, author=row.author, edition=row.edition) for row in result]
 
 @router.get("/{textBookId}", response_model=Textbook)
 def get_textbook_by_id(textBookId: int):
@@ -92,27 +76,23 @@ def get_textbook_by_id(textBookId: int):
             edition=result.edition
         )
     
-class TextbookIdResponse(BaseModel):
-    textbook_id: int
+@router.post("/all_info", response_model=TextbookInputResponse)
+def add_textbook_info(input: TextbookInput):
+    professor = professors.create_professor(professors.Professor(first=input.prof_first, last=input.prof_last))
+    course = courses.create_course(courses.Course(department=input.department, number=input.course_number))
+    class_ = classes.create_class(classes.Class(department=input.department, number=input.course_number, prof_first=input.prof_first, prof_last=input.prof_last))
+    textbook = create_textbook(Textbook(title=input.title, author=input.author, edition=input.edition))
+    classbook = classbooks.create_classbook(class_id=class_.class_id, book_id=textbook.textbook_id)
+    link = links.create_link(textbook_id=textbook.textbook_id, url=input.url)
 
-'''
-class TextbookCreateResponse(BaseModel):
-    textbook_id: int
-
-@router.post("/", response_model=TextbookCreateResponse)
-def create_textbook(title: str, author: str, edition: str):
-    with db.engine.begin() as connection:
-        result = connection.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO textbooks (title, author, edition) 
-                VALUES (:title, :author, :edition) 
-                RETURNING id
-                """), 
-                {"title": title, "author": author, "edition": edition}
-            ).fetchone()
-        return TextbookCreateResponse(textbook_id=result.id)
-'''
+    return TextbookInputResponse(
+        textbook_id=textbook.textbook_id,
+        professor_id=professor.prof_id,
+        course_id=course.course_id,
+        class_id=class_.class_id,
+        classbook_id=classbook.classbook_id,
+        link_id=link.link_id
+    )
 
 @router.post("/", response_model=TextbookIdResponse)
 def create_textbook(textbook: Textbook):
@@ -146,12 +126,8 @@ def create_textbook(textbook: Textbook):
 
     return TextbookIdResponse(textbook_id=ret_id)
 
-#returns the link relating to a textbook
 @router.get("/{textBookId}/links", response_model=list[str])
 def get_textbook_links(textBookId: int):
-
-    #NOTE: add error checking if id dne
-
     with db.engine.begin() as connection:
         links = connection.execute(
             sqlalchemy.text(

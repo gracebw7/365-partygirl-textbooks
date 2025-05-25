@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List
 
@@ -20,9 +20,43 @@ class Professor(BaseModel):
 class ProfessorIdResponse(BaseModel):
     prof_id: int
 
+class ProfessorOut(BaseModel):
+    id: int
+    first: str
+    last: str
+
+@router.get("/", response_model=List[ProfessorOut])
+def get_all_professors():
+    with db.engine.begin() as connection:
+        rows = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, first, last
+                FROM professors
+                """
+            )
+        ).fetchall()
+        return [ProfessorOut(id=row.id, first=row.first, last=row.last) for row in rows]
+
+@router.get("/{professor_id}", response_model=ProfessorOut)
+def get_professor_by_id(professor_id: int):
+    with db.engine.begin() as connection:
+        row = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, first, last
+                FROM professors
+                WHERE id = :professor_id
+                """
+            ),
+            {"professor_id": professor_id}
+        ).first()
+        if not row:
+            raise HTTPException(status_code=404, detail="Professor not found")
+        return ProfessorOut(id=row.id, first=row.first, last=row.last)
+    
 @router.post("/", response_model=ProfessorIdResponse)
 def create_professor(prof_request:Professor):
-
     with db.engine.begin() as connection:
         ret_id = connection.execute(
             sqlalchemy.text(

@@ -1,6 +1,6 @@
 
 from dataclasses import dataclass
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List
 
@@ -26,6 +26,41 @@ class Class(BaseModel):
 class ClassIdResponse(BaseModel):
     class_id: int
 
+class ClassOut(BaseModel):
+    id: int
+    course_id: int
+    professor_id: int
+
+@router.get("/", response_model=List[ClassOut])
+def get_all_classes():
+    with db.engine.begin() as connection:
+        rows = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, course_id, professor_id
+                FROM classes
+                """
+            )
+        ).fetchall()
+        return [ClassOut(id=row.id, course_id=row.course_id, professor_id=row.professor_id) for row in rows]
+
+@router.get("/{class_id}", response_model=ClassOut)
+def get_class_by_id(class_id: int):
+    with db.engine.begin() as connection:
+        row = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, course_id, professor_id
+                FROM classes
+                WHERE id = :class_id
+                """
+            ),
+            {"class_id": class_id}
+        ).first()
+        if not row:
+            raise HTTPException(status_code=404, detail="Class not found")
+        return ClassOut(id=row.id, course_id=row.course_id, professor_id=row.professor_id)
+    
 #attempts to find a class with the given attributes, otherwise it creates one
 @router.post("/", response_model=ClassIdResponse)
 def create_class(class_request: Class):

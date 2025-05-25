@@ -16,10 +16,39 @@ class Classbook(BaseModel):
     book_id: str
     class_id: int
 
-
 class ClassBookIdResponse(BaseModel):
     classbook_id: int
 
+@router.get("/", response_model=list[Classbook])
+def get_all_classbooks():
+    with db.engine.begin() as connection:
+        rows = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, textbook_id AS book_id, class_id
+                FROM textbook_classes
+                """
+            )
+        ).fetchall()
+        return [Classbook(id=row.id, book_id=row.book_id, class_id=row.class_id) for row in rows]
+
+@router.get("/{classbook_id}", response_model=Classbook)
+def get_classbook_by_id(classbook_id: int):
+    with db.engine.begin() as connection:
+        row = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, textbook_id AS book_id, class_id
+                FROM textbook_classes
+                WHERE id = :classbook_id
+                """
+            ),
+            {"classbook_id": classbook_id}
+        ).first()
+        if not row:
+            raise HTTPException(status_code=404, detail="Classbook not found")
+        return Classbook(id=row.id, book_id=row.book_id, class_id=row.class_id)
+    
 @router.post("/", response_model=ClassBookIdResponse)
 def create_classbook(class_id: int, book_id: str):
     try:

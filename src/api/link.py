@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, HttpUrl
 import sqlalchemy
 from src.api import auth
 from src import database as db
+from typing import List
 
 router = APIRouter(
     prefix="/links",
@@ -17,8 +18,41 @@ class Link(BaseModel):
 class LinkIdResponse(BaseModel):
     link_id: int
 
+class LinkOut(BaseModel):
+    id: int
+    textbook_id: int
+    url: HttpUrl
 
+@router.get("/", response_model=List[LinkOut])
+def get_all_links():
+    with db.engine.begin() as connection:
+        rows = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, textbook_id, url
+                FROM links
+                """
+            )
+        ).fetchall()
+        return [LinkOut(id=row.id, textbook_id=row.textbook_id, url=row.url) for row in rows]
 
+@router.get("/{link_id}", response_model=LinkOut)
+def get_link_by_id(link_id: int):
+    with db.engine.begin() as connection:
+        row = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, textbook_id, url
+                FROM links
+                WHERE id = :link_id
+                """
+            ),
+            {"link_id": link_id}
+        ).first()
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Link with id {link_id} not found.")
+        return LinkOut(id=row.id, textbook_id=row.textbook_id, url=row.url)
+    
 @router.post("/", response_model=LinkIdResponse)
 def create_link(link:Link):
     with db.engine.begin() as connection:
@@ -52,7 +86,6 @@ def create_link(link:Link):
 
 @router.post("/{link_id}")
 def request_deletion(link_id: int, description: str):
-    
     with db.engine.begin() as connection:
         # Check if the link exists
         result = connection.execute(
