@@ -29,7 +29,7 @@ class Textbook(BaseModel):
     edition: str
     links: List[str]
 
-@router.get("/search", response_model=List[Textbook]|str)
+@router.get("/", response_model=List[Textbook]|str)
 def get_search_textbook(department: str = None, 
                          number: int = None, 
                          professorFirst: str = None, 
