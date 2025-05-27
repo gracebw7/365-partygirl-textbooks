@@ -51,18 +51,21 @@ Adds a new textbook entry to the database.
 
 ---
 
-## Endpoint 4: `GET /textbooks/schedule`
-Gets the textbooks and prices for each course in a schedule.
+## Endpoint 4: `POST /textbooks/schedule`
+Gets the textbooks for each course in a schedule.
 
 ### Request Body (application/json):
 An array of course objects:
 - `course department` (string, required)
 - `course number` (string, required)
-- `professor` (string, required)
+- `professor first` (string, required)
+- `professor last` (string, required)
+- `professor email` (string, required)
 
 ### Responses:
 - `200 OK`: JSON object with textbook info per course.
 - `400 Bad Request`: Malformed request or invalid courses.
+- `404 Not Found`: If there are non classes/textbooks in the database to return
 
 ---
 
