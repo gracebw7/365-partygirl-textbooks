@@ -28,14 +28,18 @@ Solution: Use SELECT ... FOR UPDATE to lock the row before deleting it, ensuring
 ### **Scenario**  
 Two users attempt to create the same textbook (`"Database Systems" by "AuthorX", 3rd Edition`) at the same time. Both transactions check if the textbook exists, and neither sees it because neither has committed yet. Both proceed to insert the textbook, resulting in duplicate entries.  
 ### **Sequence Diagram**  
-    UserA: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
-    UserB: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
-    DB: No record found  
-    DB: No record found  
-    UserA: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
-    UserB: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
-    UserA: Commit  
-    UserB: Commit  
+   <pre> ```mermaid sequenceDiagram
+  participant UserA
+  participant DB
+  participant UserB 
+  UserA->>DB: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
+  UserB->>DB: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
+  DB->>UserA: No record found  
+  DB->>UserB: No record found  
+  UserA->>DB: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
+  UserB->>DB: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
+  UserA->>DB: Commit  
+  UserB->>DB: Commit ``` </pre>
 Solution: Add a unique constraint on title, author, and edition in the textbooks table to prevent duplicates.
 
 ## Phenomenon 3 (Non-Repeatable Read on Create Class):  
