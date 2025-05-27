@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 import sqlalchemy
 from src.api import auth, professors, classes, courses, classbooks, link as links
 from src import database as db
+from src.api.link import Link
 
 
 router = APIRouter(
@@ -66,7 +67,7 @@ def add_textbook_info(input: TextbookInput):
     class_ = classes.create_get_class(classes.Class(department=input.department, number=input.course_number, prof_first=input.prof_first, prof_last=input.prof_last))
     textbook = create_get_textbook(Textbook(title=input.title, author=input.author, edition=input.edition))
     classbook = classbooks.create_classbook(class_id=class_.class_id, book_id=textbook.textbook_id)
-    link = links.create_link(textbook_id=textbook.textbook_id, url=input.url)
+    link = links.create_link(Link(textbook_id=textbook.textbook_id, url=input.url))
 
     return TextbookInputResponse(
         textbook_id=textbook.textbook_id,
