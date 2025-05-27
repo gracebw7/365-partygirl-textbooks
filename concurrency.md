@@ -1,10 +1,25 @@
 # Concurrency Control
 ---
 
-## Phenomenon 1:  
-    2 people try to create a new professor with the same email at the same time, this could result in a lost update if not handled properly. To solve this we added a uniqueness constraint to the email field 
+## Phenomenon 1 (Idempotency Issue on Delete Link):  
+### **Scenario**
+Two users attempt to delete the same link simultaneously. Both transactions check if the link exists and determine that it does. The first transaction successfully deletes the link, but the second transaction attempts to delete it again and finds that it no longer exists. This could result in an error (e.g., "Link not found") if the application doesn't handle this gracefully.
+### **Sequence Diagram**
+    participant UserA
+    participant DB
+    participant UserB
 
-## Phenomenon 2 (Phantom Read):  
+    UserA->>DB: SELECT id FROM links WHERE id=1
+    UserB->>DB: SELECT id FROM links WHERE id=1
+    DB-->>UserA: Row exists
+    DB-->>UserB: Row exists
+    UserA->>DB: DELETE FROM links WHERE id=1
+    UserB->>DB: DELETE FROM links WHERE id=1
+    DB-->>UserA: Row deleted
+    DB-->>UserB: No row found (error or no-op)
+Solution: Use SELECT ... FOR UPDATE to lock the row before deleting it, ensuring that only one transaction can delete the row at a time.
+
+## Phenomenon 2 (Phantom Read on Create Textbook):  
 ### **Scenario**  
 Two users attempt to create the same textbook (`"Database Systems" by "AuthorX", 3rd Edition`) at the same time. Both transactions check if the textbook exists, and neither sees it because neither has committed yet. Both proceed to insert the textbook, resulting in duplicate entries.  
 ### **Sequence Diagram**  
@@ -16,13 +31,11 @@ Two users attempt to create the same textbook (`"Database Systems" by "AuthorX",
     UserB: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
     UserA: Commit  
     UserB: Commit  
+Solution: Add a unique constraint on title, author, and edition in the textbooks table to prevent duplicates.
 
-## Phenomenon 3 (Phantom Read):  
+## Phenomenon 3 (Phantom Read on Create Class):  
 ### **Scenario**  
-Phantom Reads in create_course and create_professor:  
-Two transactions could simultaneously check if a course or professor exists and insert the same record, resulting in duplicates.  
-Phantom Read in create_class:  
-Two transactions could simultaneously check if a class exists and insert the same class, resulting in duplicates.  
+Phantom Reads in create_course and create_professor: Two transactions could simultaneously check if a course or professor exists and insert the same record, resulting in duplicates. Phantom Read in create_class: Two transactions could simultaneously check if a class exists and insert the same class, resulting in duplicates. 
 ### **Sequence Diagram**  
     participant UserA
     participant DB
@@ -48,6 +61,7 @@ Two transactions could simultaneously check if a class exists and insert the sam
     UserB->>DB: INSERT INTO classes (course_id, professor_id) VALUES (1, 1)
     UserA->>DB: Commit
     UserB->>DB: Commit
+Solution: Add a unique constraint on the schemas of the tables above to prevent duplicates.
 
 ## Ensuring Isolation
 - PostgreSQL's default isolation level (READ COMMITTED) already prevents dirty reads for us.
@@ -55,3 +69,5 @@ Two transactions could simultaneously check if a class exists and insert the sam
 - Unique constraints on tables like textbooks, professors, and classbooks ensure that duplicate entries cannot be created, even if concurrency issues occur.
 2. Higher Isolation Levels:
 - Use SERIALIZABLE isolation for endpoints that are prone to higher levels of concurrency problems to prevent concurrency anomalies.
+3. Use Row Level Locks
+- Use SELECT ... FOR UPDATE to lock rows before performing operations like deletes or updates. This ensures that only one transaction can modify or delete a specific row at a time.
