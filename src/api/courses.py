@@ -15,8 +15,15 @@ router = APIRouter(
 )
 
 class Course(BaseModel):
-    department: str
-    number: int
+    department: str = Field(..., min_length=2, max_length=4)
+    number: int = Field(..., ge=100, le=999)
+
+    @field_validator('department')
+    @classmethod
+    def department_must_be_all_caps(cls,v):
+        if not v.isupper():
+            raise ValueError('Department must be all uppercase')
+        return v
 
 class CourseIdResponse(BaseModel):
     course_id: int
