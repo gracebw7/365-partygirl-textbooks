@@ -59,8 +59,11 @@ def get_course_by_id(course_id: int):
             ),
             {"course_id": course_id}
         ).first()
-        if not row:
-            raise HTTPException(status_code=404, detail="Course not found")
+        if row is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Course with id {course_id} not found."
+            )
         return CourseOut(id=row.id, department=row.department, number=row.number)
 
 @router.post("/", response_model=CourseIdResponse)

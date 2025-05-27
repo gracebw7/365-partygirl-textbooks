@@ -58,8 +58,11 @@ def get_class_by_id(class_id: int):
             ),
             {"class_id": class_id}
         ).first()
-        if not row:
-            raise HTTPException(status_code=404, detail="Class not found")
+        if row is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Class with id {class_id} not found."
+            )
         return ClassOut(id=row.id, course_id=row.course_id, professor_id=row.professor_id)
     
 #attempts to find a class with the given attributes, otherwise it creates one

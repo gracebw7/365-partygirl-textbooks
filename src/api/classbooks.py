@@ -44,8 +44,11 @@ def get_classbook_by_id(classbook_id: int):
             ),
             {"classbook_id": classbook_id}
         ).first()
-        if not row:
-            raise HTTPException(status_code=404, detail="Classbook not found")
+        if row is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Classbook with id {classbook_id} not found."
+            )
         return Classbook(id=row.id, book_id=row.book_id, class_id=row.class_id)
     
 @router.post("/", response_model=ClassBookIdResponse)

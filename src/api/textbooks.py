@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field
 import sqlalchemy
 from src.api import auth, professors, classes, courses, classbooks, link as links
@@ -52,7 +52,10 @@ def get_textbook_by_id(textBookId: int):
                 {"id": textBookId}
             ).fetchone()
         if result is None:
-            return {"message": f"textbook with id {textBookId} not found."}
+            raise HTTPException(
+                status_code=404,
+                detail=f"Textbook with id {textBookId} not found."
+            )
         return Textbook(
             id=result.id,
             title=result.title,
