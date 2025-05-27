@@ -65,7 +65,7 @@ An array of course objects:
 ### Responses:
 - `200 OK`: JSON object with textbook info per course.
 - `400 Bad Request`: Malformed request or invalid courses.
-- `404 Not Found`: If there are non classes/textbooks in the database to return
+- `404 Not Found`: If there are no classes/textbooks in the database to return
 
 ---
 
