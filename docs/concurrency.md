@@ -5,6 +5,9 @@
 ### **Scenario**
 Two users attempt to delete the same link simultaneously. Both transactions check if the link exists and determine that it does. The first transaction successfully deletes the link, but the second transaction attempts to delete it again and finds that it no longer exists. This could result in an error (e.g., "Link not found").
 ### **Sequence Diagram**
+![untitled](https://github.com/user-attachments/assets/d562fbc2-a40a-48c5-946a-8f25e90e98bf)
+<pre>
+    mermaid`sequenceDiagram
     participant UserA
     participant DB
     participant UserB
@@ -16,7 +19,9 @@ Two users attempt to delete the same link simultaneously. Both transactions chec
     UserA->>DB: DELETE FROM links WHERE id=1
     UserB->>DB: DELETE FROM links WHERE id=1
     DB-->>UserA: Row deleted
-    DB-->>UserB: No row found (error or no-op)
+    DB-->>UserB: No row found (error or no-op)`
+</pre>
+
 Solution: Use SELECT ... FOR UPDATE to lock the row before deleting it, ensuring that only one transaction can delete the row at a time preventing an error from being thrown.
 
 ## Phenomenon 2 (Non-Repeatable Read on Create Textbook):  
