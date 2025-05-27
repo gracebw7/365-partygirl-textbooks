@@ -1,7 +1,7 @@
 
 from dataclasses import dataclass
 from fastapi import APIRouter, Depends, status, HTTPException
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ValidationError
 from typing import List
 
 import sqlalchemy
@@ -65,8 +65,19 @@ def get_class_by_id(class_id: int):
 #attempts to find a class with the given attributes, otherwise it creates one
 @router.post("/", response_model=ClassIdResponse)
 def create_class(class_request: Class):
-    course_id = create_course(Course(department=class_request.department, number=class_request.course_number))
-    prof_id = create_professor(Professor(first=class_request.professor_first, last=class_request.professor_last, email=class_request.professor_email))
+    try:
+        course_id = create_course(Course(department=class_request.department, number=class_request.course_number))
+        prof_id = create_professor(Professor(first=class_request.professor_first, last=class_request.professor_last, email=class_request.professor_email))
+    except ValidationError as e:
+        errors = [
+            {
+                "loc":err["loc"],
+                "msg":err["msg"],
+                "type":err["type"]
+            }
+            for err in e.errors()
+        ]
+        raise HTTPException(status_code=422, detail=errors)
 
     with db.engine.begin() as connection:
         ret_id = connection.execute(

@@ -7,6 +7,8 @@ import sqlalchemy
 from src.api import auth
 from src import database as db
 
+import re
+
 router = APIRouter(
     prefix="/professors",
     tags=["professors"],
@@ -14,9 +16,23 @@ router = APIRouter(
 )
 
 class Professor(BaseModel):
-    first: str
-    last: str
-    email: str
+    first: str = Field(..., min_length=1, max_length=50)
+    last: str = Field(..., min_length=1, max_length=50)
+    email: str = Field(..., min_length=1, max_length=50)
+
+    @field_validator('first','last')
+    @classmethod
+    def must_be_alphabetic(cls,v):
+        if not re.fullmatch(r"[A-Za-z]+(>[-'][A-Za-z]+)*",v):
+            raise ValueError("Name must contain only alphabetic characters and optional hyphen/apostrophe")
+        return v
+    
+    @field_validator('email')
+    @classmethod
+    def email_must_be_calpoly(cls,v):
+        if not v.endswith('@calpoly.edu'):
+            raise ValueError("Email must be a @calpoly.edu address")
+        return v
 
 class ProfessorIdResponse(BaseModel):
     prof_id: int
