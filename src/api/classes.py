@@ -19,9 +19,10 @@ router = APIRouter(
 
 class Class(BaseModel):
     department: str
-    number: int
-    prof_first: str
-    prof_last: str
+    course_number: int
+    professor_first: str
+    professor_last: str
+    professor_email: str
 
 class ClassIdResponse(BaseModel):
     class_id: int
@@ -64,8 +65,8 @@ def get_class_by_id(class_id: int):
 #attempts to find a class with the given attributes, otherwise it creates one
 @router.post("/", response_model=ClassIdResponse)
 def create_class(class_request: Class):
-    course_id = create_course(Course(department=class_request.department, number=class_request.number))
-    prof_id = create_professor(Professor(first=class_request.prof_first, last=class_request.prof_last))
+    course_id = create_course(Course(department=class_request.department, number=class_request.course_number))
+    prof_id = create_professor(Professor(first=class_request.professor_first, last=class_request.professor_last, email=class_request.professor_email))
 
     with db.engine.begin() as connection:
         ret_id = connection.execute(
