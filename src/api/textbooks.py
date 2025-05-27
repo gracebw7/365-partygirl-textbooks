@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 import sqlalchemy
 from src.api import auth, professors, classes, courses, classbooks, link as links
 from src import database as db
+from src.api.link import Link
 
 
 router = APIRouter(
