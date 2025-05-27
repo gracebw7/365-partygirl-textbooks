@@ -45,11 +45,13 @@ Solution: Add a unique constraint on title, author, and edition in the textbooks
 ## Phenomenon 3 (Non-Repeatable Read on Create Class):  
 ### **Scenario**  
 Phantom Reads in create_course and create_professor: Two transactions could simultaneously check if a course or professor exists and insert the same record, resulting in duplicates. Phantom Read in create_class: Two transactions could simultaneously check if a class exists and insert the same class, resulting in duplicates. 
-### **Sequence Diagram**  
+### **Sequence Diagram** 
+<pre>```mermaid
+    sequenceDiagram
     participant UserA
     participant DB
     participant UserB
-
+    
     UserA->>DB: SELECT id FROM courses WHERE department='CS' AND number=101
     UserB->>DB: SELECT id FROM courses WHERE department='CS' AND number=101
     DB-->>UserA: No record found
@@ -70,6 +72,10 @@ Phantom Reads in create_course and create_professor: Two transactions could simu
     UserB->>DB: INSERT INTO classes (course_id, professor_id) VALUES (1, 1)
     UserA->>DB: Commit
     UserB->>DB: Commit
+```</pre>
+
+
+
 Solution: Add a unique constraint on the schemas of the tables above to prevent duplicates.
 
 ## Ensuring Isolation
