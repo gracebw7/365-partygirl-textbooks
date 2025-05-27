@@ -53,4 +53,4 @@ app.include_router(link.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Shop is open for business!"}
+    return {"message": "365 PartyGirl Textbooks API is running!"}

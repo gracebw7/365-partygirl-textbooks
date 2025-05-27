@@ -1,6 +1,6 @@
 
 from dataclasses import dataclass
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List
 
@@ -21,10 +21,43 @@ class Course(BaseModel):
 class CourseIdResponse(BaseModel):
     course_id: int
 
-#attempts to find a course with the given attributes, otherwise it creates one
-@router.post("/", response_model=CourseIdResponse)
-def create_get_course(course_request:Course):
+class CourseOut(BaseModel):
+    id: int
+    department: str
+    number: int
 
+@router.get("/", response_model=List[CourseOut])
+def get_all_courses():
+    with db.engine.begin() as connection:
+        rows = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, department, number
+                FROM courses
+                """
+            )
+        ).fetchall()
+        return [CourseOut(id=row.id, department=row.department, number=row.number) for row in rows]
+
+@router.get("/{course_id}", response_model=CourseOut)
+def get_course_by_id(course_id: int):
+    with db.engine.begin() as connection:
+        row = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id, department, number
+                FROM courses
+                WHERE id = :course_id
+                """
+            ),
+            {"course_id": course_id}
+        ).first()
+        if not row:
+            raise HTTPException(status_code=404, detail="Course not found")
+        return CourseOut(id=row.id, department=row.department, number=row.number)
+
+@router.post("/", response_model=CourseIdResponse)
+def create_course(course_request:Course):
     with db.engine.begin() as connection:
         ret_id = connection.execute(
             sqlalchemy.text(
