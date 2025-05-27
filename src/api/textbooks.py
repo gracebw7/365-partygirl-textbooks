@@ -16,23 +16,6 @@ class Textbook(BaseModel):
     author: str
     edition: str
 
-class TextbookInputResponse(BaseModel):
-    textbook_id: int
-    professor_id: int
-    course_id: int
-    class_id: int
-    classbook_id: int
-    link_id: int
-
-class TextbookInput(BaseModel):
-    title: str
-    author: str
-    edition: str
-    prof_first: str
-    prof_last: str
-    department: str
-    course_number: int
-    url: str
 
 class TextbookIdResponse(BaseModel):
     textbook_id: int
@@ -76,23 +59,6 @@ def get_textbook_by_id(textBookId: int):
             edition=result.edition
         )
     
-@router.post("/all_info", response_model=TextbookInputResponse)
-def add_textbook_info(input: TextbookInput):
-    professor = professors.create_professor(professors.Professor(first=input.prof_first, last=input.prof_last))
-    course = courses.create_course(courses.Course(department=input.department, number=input.course_number))
-    class_ = classes.create_class(classes.Class(department=input.department, number=input.course_number, prof_first=input.prof_first, prof_last=input.prof_last))
-    textbook = create_textbook(Textbook(title=input.title, author=input.author, edition=input.edition))
-    classbook = classbooks.create_classbook(class_id=class_.class_id, book_id=textbook.textbook_id)
-    link = links.create_link(textbook_id=textbook.textbook_id, url=input.url)
-
-    return TextbookInputResponse(
-        textbook_id=textbook.textbook_id,
-        professor_id=professor.prof_id,
-        course_id=course.course_id,
-        class_id=class_.class_id,
-        classbook_id=classbook.classbook_id,
-        link_id=link.link_id
-    )
 
 @router.post("/", response_model=TextbookIdResponse)
 def create_textbook(textbook: Textbook):

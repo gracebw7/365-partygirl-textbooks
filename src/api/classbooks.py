@@ -12,7 +12,6 @@ router = APIRouter(
 )
 
 class Classbook(BaseModel):
-    id: int
     book_id: str
     class_id: int
 
@@ -50,7 +49,9 @@ def get_classbook_by_id(classbook_id: int):
         return Classbook(id=row.id, book_id=row.book_id, class_id=row.class_id)
     
 @router.post("/", response_model=ClassBookIdResponse)
-def create_classbook(class_id: int, book_id: str):
+def create_classbook(classbook: Classbook):
+    class_id = classbook.class_id
+    book_id = classbook.book_id
     try:
         with db.engine.begin() as connection:
             # Check if entry already exists

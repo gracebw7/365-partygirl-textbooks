@@ -18,6 +18,10 @@ class Link(BaseModel):
 class LinkIdResponse(BaseModel):
     link_id: int
 
+class DeleteLinkRequest(BaseModel):
+    link_id: int
+    description: str = Field(..., max_length=500, description="Reason for deletion request")
+
 class LinkOut(BaseModel):
     id: int
     textbook_id: int
@@ -85,7 +89,7 @@ def create_link(link:Link):
     return LinkIdResponse(link_id=ret_id)
 
 @router.post("/{link_id}")
-def request_deletion(link_id: int, description: str):
+def request_deletion(link_req: DeleteLinkRequest):
     with db.engine.begin() as connection:
         # Check if the link exists
         result = connection.execute(
@@ -93,10 +97,10 @@ def request_deletion(link_id: int, description: str):
                 """
                 SELECT id FROM links WHERE id = :link_id
                 """), 
-                {"link_id": link_id}
+                {"link_id": link_req.link_id}
             ).fetchone()
         if result is None:
-            return {"message": f"Link with id {link_id} not found."}
+            return {"message": f"Link with id {link_req.link_id} not found."}
         result = connection.execute(
             sqlalchemy.text(
                 """
@@ -104,14 +108,14 @@ def request_deletion(link_id: int, description: str):
                 VALUES (:link_id, :description) 
                 RETURNING id
                 """), 
-                {"link_id": link_id, "description": description}
+                {"link_id": link_req.link_id, "description": link_req.description}
             ).fetchone()
         if result is None:
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to create deletion request for link {link_id}."
+                detail=f"Failed to create deletion request for link {link_req.link_id}."
             )
-        return {"message": f"Deletion request for link {link_id} created successfully.", "request_id": result.id}
+        return {"message": f"Deletion request for link {link_req.link_id} created successfully.", "request_id": result.id}
     
 @router.delete("/{link_id}")
 def delete_link(link_id: int):
