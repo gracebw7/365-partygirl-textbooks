@@ -1,9 +1,9 @@
 # Concurrency Control
 ---
 
-## Phenomenon 1 (Idempotency Issue on Delete Link):  
+## Phenomenon 1 (Non-Repeatable Read on Delete Link):  
 ### **Scenario**
-Two users attempt to delete the same link simultaneously. Both transactions check if the link exists and determine that it does. The first transaction successfully deletes the link, but the second transaction attempts to delete it again and finds that it no longer exists. This could result in an error (e.g., "Link not found") if the application doesn't handle this gracefully.
+Two users attempt to delete the same link simultaneously. Both transactions check if the link exists and determine that it does. The first transaction successfully deletes the link, but the second transaction attempts to delete it again and finds that it no longer exists. This could result in an error (e.g., "Link not found").
 ### **Sequence Diagram**
     participant UserA
     participant DB
@@ -17,9 +17,9 @@ Two users attempt to delete the same link simultaneously. Both transactions chec
     UserB->>DB: DELETE FROM links WHERE id=1
     DB-->>UserA: Row deleted
     DB-->>UserB: No row found (error or no-op)
-Solution: Use SELECT ... FOR UPDATE to lock the row before deleting it, ensuring that only one transaction can delete the row at a time.
+Solution: Use SELECT ... FOR UPDATE to lock the row before deleting it, ensuring that only one transaction can delete the row at a time preventing an error from being thrown.
 
-## Phenomenon 2 (Phantom Read on Create Textbook):  
+## Phenomenon 2 (Non-Repeatable Read on Create Textbook):  
 ### **Scenario**  
 Two users attempt to create the same textbook (`"Database Systems" by "AuthorX", 3rd Edition`) at the same time. Both transactions check if the textbook exists, and neither sees it because neither has committed yet. Both proceed to insert the textbook, resulting in duplicate entries.  
 ### **Sequence Diagram**  
@@ -33,7 +33,7 @@ Two users attempt to create the same textbook (`"Database Systems" by "AuthorX",
     UserB: Commit  
 Solution: Add a unique constraint on title, author, and edition in the textbooks table to prevent duplicates.
 
-## Phenomenon 3 (Phantom Read on Create Class):  
+## Phenomenon 3 (Non-Repeatable Read on Create Class):  
 ### **Scenario**  
 Phantom Reads in create_course and create_professor: Two transactions could simultaneously check if a course or professor exists and insert the same record, resulting in duplicates. Phantom Read in create_class: Two transactions could simultaneously check if a class exists and insert the same class, resulting in duplicates. 
 ### **Sequence Diagram**  
