@@ -1,7 +1,7 @@
 # Concurrency Control
 ---
 
-## Phenomenon 1 (Non-Repeatable Read on Delete Link):  
+## Phenomenon 1 (Idempotency Issue on Delete Link):  
 ### **Scenario**
 Two users attempt to delete the same link simultaneously. Both transactions check if the link exists and determine that it does. The first transaction successfully deletes the link, but the second transaction attempts to delete it again and finds that it no longer exists. This could result in an error (e.g., "Link not found").
 ### **Sequence Diagram**
