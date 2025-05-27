@@ -8,17 +8,15 @@
 ### **Scenario**  
 Two users attempt to create the same textbook (`"Database Systems" by "AuthorX", 3rd Edition`) at the same time. Both transactions check if the textbook exists, and neither sees it because neither has committed yet. Both proceed to insert the textbook, resulting in duplicate entries.  
 ### **Sequence Diagram**  
-```mermaid
-sequenceDiagram
-    UserA: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'
-    UserB: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'
-    DB: No record found
-    DB: No record found
-    UserA: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')
-    UserB: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')
-    UserA: Commit
-    UserB: Commit
-```
+sequenceDiagram  
+    UserA: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
+    UserB: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
+    DB: No record found  
+    DB: No record found  
+    UserA: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
+    UserB: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
+    UserA: Commit  
+    UserB: Commit  
 
 ## Ensuring Isolation
 - PostgreSQL's default isolation level (READ COMMITTED) already prevents dirty reads for us.
