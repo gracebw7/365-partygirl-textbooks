@@ -1,23 +1,20 @@
 # API Documentation: Textbook Service
 
-## Endpoint 1: `GET /textbooks/search`
-Retrieves a list of textbooks based on criteria provided in the **request body**.
+## Endpoint 1: `GET /search/`
+Retrieves a list of textbooks based on criteria provided in the **query parameters**.
 
 ### Request Body:
 - `department` (string, optional): Filter textbooks by department.
-- `courseNumber` (string, optional): Filter textbooks by course number.
-- `professor` (string, optional): Filter textbooks by professor's name.
+- `number` (string, optional): Filter textbooks by course number.
+- `professorFirst` (string, optional): Filter textbooks by professor's name.
+- `professorLast` (string, optional): Filter textbooks by professor's name.
 - `title` (string, optional): Filter textbooks by textbook title.
 - `author` (string, optional): Filter textbooks by textbook author.
 - `edition` (string, optional): Filter textbooks by textbook edition.
-- `sortBy` (string, optional): Sort results by a specific field (e.g., `dateAdded`).
-- `sortOrder` (string, optional): Specify the sort order (`asc` or `desc`). Defaults to `desc`.
 
 ### Responses:
-- `200 OK`: A JSON array of textbook objects (`title`, `author`, `edition`, `links`, `size` optional).
-- `400 Bad Request`: Invalid request.
-- `404 Not Found`: No matching textbooks.
-
+- `200 OK`: A JSON array of textbook objects (`title`, `author`, `edition`, `links`).
+- `422 Validation error`: Invalid request.
 ---
 
 ## Endpoint 2: `GET /textbooks/{textbookId}`
@@ -28,36 +25,33 @@ Retrieves detailed information for a specific textbook.
 
 ### Responses:
 - `200 OK`: JSON object with textbook details.
+- `422 Validation Error`: Invalid query.
 - `404 Not Found`: Invalid textbook ID.
 
 ---
 
-## Endpoint 3: `POST /textbooks`
+## Endpoint 3: `POST /textbooks/`
 Adds a new textbook entry to the database.
 
 ### Request Body (application/json):
-- `department` (string, required)
-- `courseNumber` (string, required)
-- `professor` (string, required)
 - `title` (string, required)
 - `author` (string, required)
 - `edition` (string, optional)
-- `links` (array of URL strings)
 
 ### Responses:
-- `201 Created`: JSON object with the new textbook entry.
+- `200 Successful`: JSON object with the new textbook entry.
 - `400 Bad Request`: Invalid or incomplete request body.
 - `409 Conflict`: Duplicate textbook.
 
 ---
 
-## Endpoint 4: `POST /textbooks/schedule`
+## Endpoint 4: `POST /schedule/`
 Gets the textbooks for each course in a schedule.
 
 ### Request Body (application/json):
 An array of course objects:
-- `course department` (string, required)
-- `course number` (string, required)
+- `department` (string, required)
+- `number` (string, required)
 - `professor first` (string, required)
 - `professor last` (string, required)
 - `professor email` (string, required)
@@ -69,13 +63,11 @@ An array of course objects:
 
 ---
 
-## Endpoint 5: `POST /textbooks/{textbookId}/link`
+## Endpoint 5: `POST /links/`
 Adds a new link to an existing textbook entry.
 
-### Path Parameter:
-- `textbookId` (integer, required)
-
 ### Request Body:
+- `textbookId` (integer, required)
 - `link` (string): The URL to be added.
 
 ### Responses:
@@ -85,11 +77,10 @@ Adds a new link to an existing textbook entry.
 
 ---
 
-## Endpoint 6: `DELETE /textbook/{id}/{linkID}`
+## Endpoint 6: `DELETE /links/{linkID}`
 Deletes a link from a textbook entry.
 
 ### Path Parameters:
-- `id` (integer, required): Textbook ID.
 - `linkID` (integer, required): Link ID.
 
 ### Responses:
@@ -98,32 +89,55 @@ Deletes a link from a textbook entry.
 
 ---
 
-## Endpoint 7: `POST /course/{textbookID}`
-Creates a new course associated with an existing textbook.
-
-### Path Parameter:
-- `textbookID` (integer, required)
+## Endpoint 7: `GET /textbooks/`
+Gets all textbooks in database.
 
 ### Responses:
-- `204 No Content`: Course created successfully.
-- `400 Bad Request`: Malformed course data.
-- `404 Not Found`: Invalid textbook ID.
-- `409 Conflict`: Course number already exists.
+- `200 Successful Response`: JSON of textbooks.
 
 ---
 
-## Endpoint 8: `POST /{courseID}/professor/{textbookID}`
-Adds a professor to a course and links the professor/course to a textbook.
+## Endpoint 8: `GET /textbooks/{textBookId}/links`
+Gets all links for given textbook ID.
 
 ### Path Parameters:
-- `courseID` (integer, required)
-- `textbookID` (integer, required)
-
-### Request Body (application/json):
-- `first name` (string, optional)
-- `last name` (string, required)
+- `textbookID` (integer, required): Textbook ID.
 
 ### Responses:
-- `200 OK`: JSON object with professor and course/textbook link info.
-- `400 Bad Request`: Malformed request or non-existent course/textbook.
-- `409 Conflict`: Duplicate professor name.
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
+
+## Endpoint 9: `GET /links/`
+Gets all links in database.
+
+### Responses:
+- `200 Successful Response`: JSON of links.
+
+---
+
+## Endpoint 10: `GET /links/{linkID}`
+Get a link by ID
+
+### Path Parameters:
+- `linkID` (integer, required): Link ID.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
+
+## Endpoint 11: `POST /links/{linkID}`
+Request link deletion.
+
+### Request Body:
+- `linkID` (integer, required): Link ID.
+- `description` (string, required): description of link issue.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
