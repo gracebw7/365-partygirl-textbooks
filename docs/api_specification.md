@@ -141,3 +141,139 @@ Request link deletion.
 - `404 Not Found`: Invalid textbook or link ID.
 
 ---
+
+## Endpoint 12: `POST /courses/`
+Get all courses.
+
+### Responses:
+- `200 Successful Response`: JSON of all courses.
+
+---
+
+## Endpoint 13: `POST /courses/`
+Create new course.
+
+### Request Body:
+- `department` (string, required): Department code.
+- `number` (integer, required): course number.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
+
+## Endpoint 14: `GET /courses/{course_id}`
+Get course by ID.
+
+### Path Parameters:
+- `course_id` (integer, required): course ID.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
+
+## Endpoint 15: `GET /professors/`
+Gets all professors in the database.
+
+### Responses:
+- `200 Successful Response`: Gets all professors in database.
+
+---
+
+## Endpoint 16: `POST /professors/`
+Create new professor. 
+
+### Request Body:
+- `first` (string, required): professor first name.
+- `last` (string, required): professor last name.
+- `email` (string, required): professor email.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
+
+## Endpoint 17: `GET /professors/{professor_id}`
+Get professor by ID. 
+
+### Path Parameters:
+- `professor_id` (integer, required): professor id.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
+
+## Endpoint 18: `GET /classes/`
+Get all classes in database.
+
+### Responses:
+- `200 Successful Response`: JSON of classes.
+
+---
+
+## Endpoint 19: `POST /classes/`
+Create new professor. 
+
+### Request Body:
+- `department` (string, required): department code.
+- `course_number` (integer, required): course number.
+- `professor_first` (string, required): professor first name.
+- `professor_last` (string, required): professor last name.
+- `professor_email` (string, required): professor email.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
+
+## Endpoint 20: `GET /classes/{class_id}`
+Gets class by ID.
+
+### Path Parameters:
+- `class_id` (integer, required): class id.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
+
+## Endpoint 21: `GET /classbooks/`
+Gets all classbooks in the database. 
+
+### Responses:
+- `200 Successful Response`: JSON response of all textbooks.
+
+---
+
+## Endpoint 22: `POST /classbooks/`
+Create new professor. 
+
+### Request Body:
+- `book_id` (string, required): textbook id.
+- `class_id` (integer, required): class id.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
+
+## Endpoint 23: `GET /classbooks/{classbook_id}`
+Gets a classbook by ID.
+
+### Path Parameter:
+- `classbook_id` (integer, required): classbook ID.
+
+### Responses:
+- `204 No Content`: Link successfully deleted.
+- `404 Not Found`: Invalid textbook or link ID.
+
+---
