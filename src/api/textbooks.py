@@ -17,38 +17,44 @@ class Textbook(BaseModel):
     author: str
     edition: str
 
-
 class TextbookIdResponse(BaseModel):
     textbook_id: int
 
 @router.get("/", response_model=list[Textbook])
 def get_textbooks():
-    with db.engine.begin() as connection:
-        result = connection.execute(
-            sqlalchemy.text(
-                """
-                SELECT 
-                    *
-                FROM 
-                    textbooks 
-                """
-            ) 
+    try:
+        with db.engine.begin() as connection:
+            result = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT 
+                        *
+                    FROM 
+                        textbooks 
+                    """
+                )
             ).fetchall()
-    return [Textbook(title=row.title, author=row.author, edition=row.edition) for row in result]
+        return [Textbook(title=row.title, author=row.author, edition=row.edition) for row in result]
+    except sqlalchemy.exc.NoResultFound:
+        raise HTTPException(status_code=404, detail="Textbooks not found.")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error while retrieving textbooks.")
 
 @router.get("/{textBookId}", response_model=Textbook)
 def get_textbook_by_id(textBookId: int):
-    with db.engine.begin() as connection:
-        result = connection.execute(
-            sqlalchemy.text(
-                """
-                SELECT 
-                    id, title, author, edition 
-                FROM 
-                    textbooks 
-                WHERE 
-                    id = :id
-                """), 
+    try:
+        with db.engine.begin() as connection:
+            result = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT 
+                        id, title, author, edition 
+                    FROM 
+                        textbooks 
+                    WHERE 
+                        id = :id
+                    """
+                ), 
                 {"id": textBookId}
             ).fetchone()
         if result is None:
@@ -57,60 +63,70 @@ def get_textbook_by_id(textBookId: int):
                 detail=f"Textbook with id {textBookId} not found."
             )
         return Textbook(
-            id=result.id,
             title=result.title,
             author=result.author,
             edition=result.edition
         )
-    
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error while retrieving textbook.")
 
 @router.post("/", response_model=TextbookIdResponse)
 def create_textbook(textbook: Textbook):
-    with db.engine.begin() as connection:
-        # Check if the textbook already exists
-        ret_id = connection.execute(
-            sqlalchemy.text(
-                """
-                SELECT id
-                FROM textbooks
-                WHERE title = :title AND author = :author AND edition = :edition
-                """
-            ),
-            {"title": textbook.title, "author": textbook.author, "edition": textbook.edition},
-        ).scalar_one_or_none()
+    try:
+        with db.engine.begin() as connection:
+            ret_id = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT id
+                    FROM textbooks
+                    WHERE title = :title AND author = :author AND edition = :edition
+                    """
+                ),
+                {"title": textbook.title, "author": textbook.author, "edition": textbook.edition},
+            ).scalar_one_or_none()
 
-        if ret_id is not None:
-            return TextbookIdResponse(textbook_id=ret_id)
+            if ret_id is not None:
+                return TextbookIdResponse(textbook_id=ret_id)
 
-        # Create a new textbook if it doesn't exist
-        ret_id = connection.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO textbooks (title, author, edition)
-                VALUES (:title, :author, :edition)
-                RETURNING id
-                """
-            ),
-            {"title": textbook.title, "author": textbook.author, "edition": textbook.edition},
-        ).scalar_one()
+            ret_id = connection.execute(
+                sqlalchemy.text(
+                    """
+                    INSERT INTO textbooks (title, author, edition)
+                    VALUES (:title, :author, :edition)
+                    RETURNING id
+                    """
+                ),
+                {"title": textbook.title, "author": textbook.author, "edition": textbook.edition},
+            ).scalar_one()
 
-    return TextbookIdResponse(textbook_id=ret_id)
+        return TextbookIdResponse(textbook_id=ret_id)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error while creating textbook.")
 
 @router.get("/{textBookId}/links", response_model=list[str])
 def get_textbook_links(textBookId: int):
-    with db.engine.begin() as connection:
-        links = connection.execute(
-            sqlalchemy.text(
-                """
-                SELECT url
-                FROM links
-                WHERE textbook_id = :id
-                """
-            ),
-            {"id":textBookId},
-        ).scalars().all()
+    try:
+        with db.engine.begin() as connection:
+            links = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT url
+                    FROM links
+                    WHERE textbook_id = :id
+                    """
+                ),
+                {"id": textBookId},
+            ).scalars().all()
 
-    if not links:
-        return []
+        if not links:
+            return []
 
-    return links
+        return links
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error while retrieving links.")
