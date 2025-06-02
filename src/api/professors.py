@@ -69,8 +69,11 @@ def get_professor_by_id(professor_id: int):
             ),
             {"professor_id": professor_id}
         ).first()
-        if not row:
-            raise HTTPException(status_code=404, detail="Professor not found")
+        if row is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Professor with id {professor_id} not found."
+            )
         return ProfessorOut(id=row.id, first=row.first, last=row.last, email=row.email)
     
 @router.post("/", response_model=ProfessorIdResponse)

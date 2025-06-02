@@ -5,6 +5,9 @@
 ### **Scenario**
 Two users attempt to delete the same link simultaneously. Both transactions check if the link exists and determine that it does. The first transaction successfully deletes the link, but the second transaction attempts to delete it again and finds that it no longer exists. This could result in an error (e.g., "Link not found").
 ### **Sequence Diagram**
+![untitled](https://github.com/user-attachments/assets/d562fbc2-a40a-48c5-946a-8f25e90e98bf)
+<pre>
+    mermaid`sequenceDiagram
     participant UserA
     participant DB
     participant UserB
@@ -16,31 +19,39 @@ Two users attempt to delete the same link simultaneously. Both transactions chec
     UserA->>DB: DELETE FROM links WHERE id=1
     UserB->>DB: DELETE FROM links WHERE id=1
     DB-->>UserA: Row deleted
-    DB-->>UserB: No row found (error or no-op)
+    DB-->>UserB: No row found (error or no-op)`
+</pre>
+
 Solution: Use SELECT ... FOR UPDATE to lock the row before deleting it, ensuring that only one transaction can delete the row at a time preventing an error from being thrown.
 
 ## Phenomenon 2 (Non-Repeatable Read on Create Textbook):  
 ### **Scenario**  
 Two users attempt to create the same textbook (`"Database Systems" by "AuthorX", 3rd Edition`) at the same time. Both transactions check if the textbook exists, and neither sees it because neither has committed yet. Both proceed to insert the textbook, resulting in duplicate entries.  
 ### **Sequence Diagram**  
-    UserA: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
-    UserB: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
-    DB: No record found  
-    DB: No record found  
-    UserA: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
-    UserB: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
-    UserA: Commit  
-    UserB: Commit  
+   <pre> ```mermaid sequenceDiagram
+  participant UserA
+  participant DB
+  participant UserB 
+  UserA->>DB: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
+  UserB->>DB: SELECT id FROM textbooks WHERE title='Database Systems' AND author='AuthorX' AND edition='3rd'  
+  DB->>UserA: No record found  
+  DB->>UserB: No record found  
+  UserA->>DB: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
+  UserB->>DB: INSERT INTO textbooks (title, author, edition) VALUES ('Database Systems', 'AuthorX', '3rd')  
+  UserA->>DB: Commit  
+  UserB->>DB: Commit ``` </pre>
 Solution: Add a unique constraint on title, author, and edition in the textbooks table to prevent duplicates.
 
 ## Phenomenon 3 (Non-Repeatable Read on Create Class):  
 ### **Scenario**  
 Phantom Reads in create_course and create_professor: Two transactions could simultaneously check if a course or professor exists and insert the same record, resulting in duplicates. Phantom Read in create_class: Two transactions could simultaneously check if a class exists and insert the same class, resulting in duplicates. 
-### **Sequence Diagram**  
+### **Sequence Diagram** 
+<pre>```mermaid
+    sequenceDiagram
     participant UserA
     participant DB
     participant UserB
-
+    
     UserA->>DB: SELECT id FROM courses WHERE department='CS' AND number=101
     UserB->>DB: SELECT id FROM courses WHERE department='CS' AND number=101
     DB-->>UserA: No record found
@@ -61,6 +72,10 @@ Phantom Reads in create_course and create_professor: Two transactions could simu
     UserB->>DB: INSERT INTO classes (course_id, professor_id) VALUES (1, 1)
     UserA->>DB: Commit
     UserB->>DB: Commit
+```</pre>
+
+
+
 Solution: Add a unique constraint on the schemas of the tables above to prevent duplicates.
 
 ## Ensuring Isolation
