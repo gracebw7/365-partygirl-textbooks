@@ -17,6 +17,7 @@ dependencies = [
     "uv>=0.6.11",
     "httpx>=0.24.0",
     "uvicorn>=0.34.0",
+    "faker>=37.3.0",
 ]
 
 [tool.pytest.ini_options]
