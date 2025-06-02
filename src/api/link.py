@@ -4,6 +4,7 @@ import sqlalchemy
 from src.api import auth
 from src import database as db
 from typing import List
+from sqlalchemy.exc import IntegrityError  # Import IntegrityError
 
 router = APIRouter(
     prefix="/links",
@@ -96,32 +97,52 @@ def create_link(link:Link):
 
 @router.post("/{link_id}")
 def request_deletion(link_req: DeleteLinkRequest):
-    with db.engine.begin() as connection:
-        # Check if the link exists
-        result = connection.execute(
-            sqlalchemy.text(
-                """
-                SELECT id FROM links WHERE id = :link_id
-                """), 
+    try:
+        with db.engine.begin() as connection:
+            # Check if the link exists
+            result = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT id FROM links WHERE id = :link_id
+                    """
+                ), 
                 {"link_id": link_req.link_id}
             ).fetchone()
-        if result is None:
-            return {"message": f"Link with id {link_req.link_id} not found."}
-        result = connection.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO delete_link_requests (link_id, description) 
-                VALUES (:link_id, :description) 
-                RETURNING id
-                """), 
+            if result is None:
+                return {"message": f"Link with id {link_req.link_id} not found."}
+
+            # Attempt to insert the deletion request
+            result = connection.execute(
+                sqlalchemy.text(
+                    """
+                    INSERT INTO delete_link_requests (link_id, description) 
+                    VALUES (:link_id, :description) 
+                    RETURNING id
+                    """
+                ), 
                 {"link_id": link_req.link_id, "description": link_req.description}
             ).fetchone()
-        if result is None:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to create deletion request for link {link_req.link_id}."
-            )
-        return {"message": f"Deletion request for link {link_req.link_id} created successfully.", "request_id": result.id}
+
+            if result is None:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to create deletion request for link {link_req.link_id}."
+                )
+
+            return {"message": f"Deletion request for link {link_req.link_id} created successfully.", "request_id": result.id}
+
+    except IntegrityError:
+        # Handle unique constraint violation
+        raise HTTPException(
+            status_code=409,
+            detail=f"A deletion request for link {link_req.link_id} with the same description already exists."
+        )
+    except Exception as e:
+        # Handle other unexpected errors
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {str(e)}"
+        )
     
 @router.delete("/{link_id}")
 def delete_link(link_id: int):
