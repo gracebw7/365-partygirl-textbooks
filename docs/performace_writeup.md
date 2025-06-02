@@ -59,4 +59,7 @@ than in professors and classes.
 - Get Classbook By Id: 0.0122
 
 # Performance Tuning
-
+```SQL
+CREATE INDEX idx_textbook_classes_class_id
+ON textbook_classes (class_id);
+```
