@@ -12,7 +12,9 @@ metadata_obj = sqlalchemy.MetaData()
 courses = sqlalchemy.Table("courses", metadata_obj, autoload_with=db.engine)
 professors = sqlalchemy.Table("professors", metadata_obj, autoload_with=db.engine)
 textbooks = sqlalchemy.Table("textbooks", metadata_obj, autoload_with=db.engine)
-textbook_classes = sqlalchemy.Table("textbook_classes", metadata_obj, autoload_with=db.engine)
+textbook_classes = sqlalchemy.Table(
+    "textbook_classes", metadata_obj, autoload_with=db.engine
+)
 classes = sqlalchemy.Table("classes", metadata_obj, autoload_with=db.engine)
 
 
@@ -22,6 +24,7 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+
 class Textbook(BaseModel):
     id: int
     title: str
@@ -29,15 +32,17 @@ class Textbook(BaseModel):
     edition: str
     links: List[str]
 
-@router.get("/", response_model=List[Textbook]|str)
-def get_search_textbook(department: str = None, 
-                         number: int = None, 
-                         professorFirst: str = None, 
-                         professorLast: str = None,
-                         title: str = None, 
-                         author: str = None,
-                         edition: str = None):
-    
+
+@router.get("/", response_model=List[Textbook] | str)
+def get_search_textbook(
+    department: str = None,
+    number: int = None,
+    professorFirst: str = None,
+    professorLast: str = None,
+    title: str = None,
+    author: str = None,
+    edition: str = None,
+):
     conditions = []
 
     if department:
@@ -55,7 +60,6 @@ def get_search_textbook(department: str = None,
     if edition:
         conditions.append(textbooks.c.edition == edition)
 
-    
     stmt = (
         sqlalchemy.select(
             courses.c.department,
@@ -65,12 +69,11 @@ def get_search_textbook(department: str = None,
             textbooks.c.title,
             textbooks.c.author,
             textbooks.c.edition,
-            textbooks.c.id
+            textbooks.c.id,
         )
         .distinct(textbooks.c.id)
         .select_from(
-            classes
-            .join(courses, classes.c.course_id == courses.c.id)
+            classes.join(courses, classes.c.course_id == courses.c.id)
             .join(professors, classes.c.professor_id == professors.c.id)
             .join(textbook_classes, textbook_classes.c.class_id == classes.c.id)
             .join(textbooks, textbooks.c.id == textbook_classes.c.textbook_id)
@@ -90,19 +93,25 @@ def get_search_textbook(department: str = None,
                     FROM links AS l
                     WHERE l.textbook_id = :id
                     """
-                ), [{"id": row.id}]
+                ),
+                [{"id": row.id}],
             ).scalars()
 
             urls = [url for url in links]
-            
-            tbooks.append(Textbook(id=row.id, 
-                                   title=row.title, 
-                                   author=row.author, 
-                                   edition=row.edition, 
-                                   links=urls))
+
+            tbooks.append(
+                Textbook(
+                    id=row.id,
+                    title=row.title,
+                    author=row.author,
+                    edition=row.edition,
+                    links=urls,
+                )
+            )
 
     if tbooks == []:
-        return "No textbooks matching search parameters found. Please adjust your query."
-    
-    return tbooks
+        return (
+            "No textbooks matching search parameters found. Please adjust your query."
+        )
 
+    return tbooks

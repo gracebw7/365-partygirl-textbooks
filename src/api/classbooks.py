@@ -11,12 +11,15 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+
 class Classbook(BaseModel):
     book_id: str
     class_id: int
 
+
 class ClassBookIdResponse(BaseModel):
     classbook_id: int
+
 
 @router.get("/", response_model=list[Classbook])
 def get_all_classbooks():
@@ -29,7 +32,11 @@ def get_all_classbooks():
                 """
             )
         ).fetchall()
-        return [Classbook(id=row.id, book_id=row.book_id, class_id=row.class_id) for row in rows]
+        return [
+            Classbook(id=row.id, book_id=row.book_id, class_id=row.class_id)
+            for row in rows
+        ]
+
 
 @router.get("/{classbook_id}", response_model=Classbook)
 def get_classbook_by_id(classbook_id: int):
@@ -42,15 +49,15 @@ def get_classbook_by_id(classbook_id: int):
                 WHERE id = :classbook_id
                 """
             ),
-            {"classbook_id": classbook_id}
+            {"classbook_id": classbook_id},
         ).first()
         if row is None:
             raise HTTPException(
-                status_code=404,
-                detail=f"Classbook with id {classbook_id} not found."
+                status_code=404, detail=f"Classbook with id {classbook_id} not found."
             )
         return Classbook(id=row.id, book_id=row.book_id, class_id=row.class_id)
-    
+
+
 @router.post("/", response_model=ClassBookIdResponse)
 def create_classbook(classbook: Classbook):
     class_id = classbook.class_id
@@ -70,7 +77,7 @@ def create_classbook(classbook: Classbook):
             if exists:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail="Classbook entry already exists."
+                    detail="Classbook entry already exists.",
                 )
 
             ret_id = connection.execute(
@@ -86,13 +93,12 @@ def create_classbook(classbook: Classbook):
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to insert classbook entry due to integrity error."
+            detail="Failed to insert classbook entry due to integrity error.",
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Unexpected error: {str(e)}"
+            detail=f"Unexpected error: {str(e)}",
         )
 
     return ClassBookIdResponse(classbook_id=ret_id)
-

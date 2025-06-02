@@ -12,21 +12,28 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+
 class Link(BaseModel):
     textbook_id: int
     url: HttpUrl
 
+
 class LinkIdResponse(BaseModel):
     link_id: int
 
+
 class DeleteLinkRequest(BaseModel):
     link_id: int
-    description: str = Field(..., max_length=500, description="Reason for deletion request")
+    description: str = Field(
+        ..., max_length=500, description="Reason for deletion request"
+    )
+
 
 class LinkOut(BaseModel):
     id: int
     textbook_id: int
     url: HttpUrl
+
 
 @router.get("/", response_model=List[LinkOut])
 def get_all_links():
@@ -39,7 +46,10 @@ def get_all_links():
                 """
             )
         ).fetchall()
-        return [LinkOut(id=row.id, textbook_id=row.textbook_id, url=row.url) for row in rows]
+        return [
+            LinkOut(id=row.id, textbook_id=row.textbook_id, url=row.url) for row in rows
+        ]
+
 
 @router.get("/{link_id}", response_model=LinkOut)
 def get_link_by_id(link_id: int):
@@ -52,14 +62,17 @@ def get_link_by_id(link_id: int):
                 WHERE id = :link_id
                 """
             ),
-            {"link_id": link_id}
+            {"link_id": link_id},
         ).first()
         if not row:
-            raise HTTPException(status_code=404, detail=f"Link with id {link_id} not found.")
+            raise HTTPException(
+                status_code=404, detail=f"Link with id {link_id} not found."
+            )
         return LinkOut(id=row.id, textbook_id=row.textbook_id, url=row.url)
-    
+
+
 @router.post("/", response_model=LinkIdResponse)
-def create_link(link:Link):
+def create_link(link: Link):
     try:
         with db.engine.begin() as connection:
             # Check if the textbook exists
@@ -69,14 +82,14 @@ def create_link(link:Link):
                     SELECT id FROM textbooks WHERE id = :textbook_id
                     """
                 ),
-                {"textbook_id": link.textbook_id}
+                {"textbook_id": link.textbook_id},
             ).fetchone()
             if result is None:
                 raise HTTPException(
                     status_code=404,
-                    detail=f"Textbook with id {link.textbook_id} not found."
+                    detail=f"Textbook with id {link.textbook_id} not found.",
                 )
-            
+
             ret_id = connection.execute(
                 sqlalchemy.text(
                     """
@@ -92,8 +105,9 @@ def create_link(link:Link):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Unexpected error: {str(e)}"
+            detail=f"Unexpected error: {str(e)}",
         )
+
 
 @router.post("/{link_id}")
 def request_deletion(link_req: DeleteLinkRequest):
@@ -105,8 +119,8 @@ def request_deletion(link_req: DeleteLinkRequest):
                     """
                     SELECT id FROM links WHERE id = :link_id
                     """
-                ), 
-                {"link_id": link_req.link_id}
+                ),
+                {"link_id": link_req.link_id},
             ).fetchone()
             if result is None:
                 return {"message": f"Link with id {link_req.link_id} not found."}
@@ -119,31 +133,32 @@ def request_deletion(link_req: DeleteLinkRequest):
                     VALUES (:link_id, :description) 
                     RETURNING id
                     """
-                ), 
-                {"link_id": link_req.link_id, "description": link_req.description}
+                ),
+                {"link_id": link_req.link_id, "description": link_req.description},
             ).fetchone()
 
             if result is None:
                 raise HTTPException(
                     status_code=500,
-                    detail=f"Failed to create deletion request for link {link_req.link_id}."
+                    detail=f"Failed to create deletion request for link {link_req.link_id}.",
                 )
 
-            return {"message": f"Deletion request for link {link_req.link_id} created successfully.", "request_id": result.id}
+            return {
+                "message": f"Deletion request for link {link_req.link_id} created successfully.",
+                "request_id": result.id,
+            }
 
     except IntegrityError:
         # Handle unique constraint violation
         raise HTTPException(
             status_code=409,
-            detail=f"A deletion request for link {link_req.link_id} with the same description already exists."
+            detail=f"A deletion request for link {link_req.link_id} with the same description already exists.",
         )
     except Exception as e:
         # Handle other unexpected errors
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error: {str(e)}"
-        )
-    
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
 @router.delete("/{link_id}")
 def delete_link(link_id: int):
     with db.engine.begin() as connection:
@@ -154,15 +169,14 @@ def delete_link(link_id: int):
                 SELECT id FROM links WHERE id = :link_id for update
                 """
             ),
-            {"link_id": link_id}
+            {"link_id": link_id},
         ).fetchone()
-        
+
         if result is None:
             raise HTTPException(
-                status_code=404,
-                detail=f"Link with id {link_id} not found."
+                status_code=404, detail=f"Link with id {link_id} not found."
             )
-        
+
         # Delete the link
         connection.execute(
             sqlalchemy.text(
@@ -170,10 +184,7 @@ def delete_link(link_id: int):
                 DELETE FROM links WHERE id = :link_id
                 """
             ),
-            {"link_id": link_id}
+            {"link_id": link_id},
         )
-        
+
         return {"message": f"Link with id {link_id} deleted successfully."}
-
-
-

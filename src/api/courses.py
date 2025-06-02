@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
@@ -14,24 +13,28 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+
 class Course(BaseModel):
     department: str = Field(..., min_length=2, max_length=4)
     number: int = Field(..., ge=100, le=999)
 
-    @field_validator('department')
+    @field_validator("department")
     @classmethod
-    def department_must_be_all_caps(cls,v):
+    def department_must_be_all_caps(cls, v):
         if not v.isupper():
-            raise ValueError('Department must be all uppercase')
+            raise ValueError("Department must be all uppercase")
         return v
+
 
 class CourseIdResponse(BaseModel):
     course_id: int
+
 
 class CourseOut(BaseModel):
     id: int
     department: str
     number: int
+
 
 @router.get("/", response_model=List[CourseOut])
 def get_all_courses():
@@ -44,7 +47,11 @@ def get_all_courses():
                 """
             )
         ).fetchall()
-        return [CourseOut(id=row.id, department=row.department, number=row.number) for row in rows]
+        return [
+            CourseOut(id=row.id, department=row.department, number=row.number)
+            for row in rows
+        ]
+
 
 @router.get("/{course_id}", response_model=CourseOut)
 def get_course_by_id(course_id: int):
@@ -57,17 +64,17 @@ def get_course_by_id(course_id: int):
                 WHERE id = :course_id
                 """
             ),
-            {"course_id": course_id}
+            {"course_id": course_id},
         ).first()
         if row is None:
             raise HTTPException(
-                status_code=404,
-                detail=f"Course with id {course_id} not found."
+                status_code=404, detail=f"Course with id {course_id} not found."
             )
         return CourseOut(id=row.id, department=row.department, number=row.number)
 
+
 @router.post("/", response_model=CourseIdResponse)
-def create_course(course_request:Course):
+def create_course(course_request: Course):
     with db.engine.begin() as connection:
         ret_id = connection.execute(
             sqlalchemy.text(
@@ -81,17 +88,17 @@ def create_course(course_request:Course):
         ).scalar_one_or_none()
 
         if ret_id is not None:
-            return CourseIdResponse(course_id = ret_id)
+            return CourseIdResponse(course_id=ret_id)
 
         ret_id = connection.execute(
-                sqlalchemy.text(
-                    """
+            sqlalchemy.text(
+                """
                     INSERT INTO courses (department, number)
                     VALUES (:department, :number)
                     RETURNING id
                     """
-                ),
-                {"department": course_request.department, "number": course_request.number},
-            ).scalar_one()
-    
-    return CourseIdResponse(course_id = ret_id)
+            ),
+            {"department": course_request.department, "number": course_request.number},
+        ).scalar_one()
+
+    return CourseIdResponse(course_id=ret_id)

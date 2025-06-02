@@ -1,7 +1,5 @@
 import sqlalchemy
-from fastapi import APIRouter, HTTPException
-import os
-import dotenv
+from fastapi import APIRouter
 from faker import Faker
 from src import database as db
 
@@ -11,6 +9,7 @@ router = APIRouter(
     prefix="/debug",
     tags=["debug"],
 )
+
 
 @router.post("/populate_classes")
 def generate_data():
@@ -23,11 +22,15 @@ def generate_data():
 
     with db.engine.begin() as conn:
         print("creating fake classes...")
-        
+
         for i in range(num_courses):
-            if (i % 10 == 0):
+            if i % 10 == 0:
                 print(i)
-            department = fake.random_uppercase_letter() + fake.random_uppercase_letter() + fake.random_uppercase_letter()
+            department = (
+                fake.random_uppercase_letter()
+                + fake.random_uppercase_letter()
+                + fake.random_uppercase_letter()
+            )
             number = fake.random_int(min=100, max=599)
             course_id = conn.execute(
                 sqlalchemy.text(
@@ -37,11 +40,10 @@ def generate_data():
                     RETURNING id
                     """
                 ),
-                {"department": department, "number": number}
+                {"department": department, "number": number},
             ).scalar_one()
             print("creating professors...")
             for j in range(profs_per_course):
-                
                 first = fake.first_name()
                 last = fake.last_name()
                 email = fake.unique.email()
@@ -53,7 +55,7 @@ def generate_data():
                         RETURNING id
                         """
                     ),
-                    {"first": first, "last": last, "email": email}
+                    {"first": first, "last": last, "email": email},
                 ).scalar_one()
                 class_id = conn.execute(
                     sqlalchemy.text(
@@ -63,15 +65,17 @@ def generate_data():
                         RETURNING id
                         """
                     ),
-                    {"course_id": course_id, "professor_id": prof_id}
+                    {"course_id": course_id, "professor_id": prof_id},
                 ).scalar_one()
                 for k in range(books_per_class):
                     author = f"{fake.first_name()} {fake.last_name()}"
 
-                    title_words = [fake.word().capitalize() for i in range(random.randint(2,5))]
+                    title_words = [
+                        fake.word().capitalize() for i in range(random.randint(2, 5))
+                    ]
                     title = " ".join(title_words)
 
-                    edition = str(random.randint(1,10))
+                    edition = str(random.randint(1, 10))
                     textbook_id = conn.execute(
                         sqlalchemy.text(
                             """
@@ -80,7 +84,7 @@ def generate_data():
                             RETURNING id
                             """
                         ),
-                        {"title": title, "author": author, "edition": edition}
+                        {"title": title, "author": author, "edition": edition},
                     ).scalar_one()
                     conn.execute(
                         sqlalchemy.text(
@@ -89,7 +93,7 @@ def generate_data():
                             VALUES (:textbook_id, :class_id)
                             """
                         ),
-                        {"textbook_id": textbook_id, "class_id": class_id}
+                        {"textbook_id": textbook_id, "class_id": class_id},
                     )
                     for l in range(links_per_book):
                         url = fake.unique.url()
@@ -100,6 +104,6 @@ def generate_data():
                                 VALUES (:textbook_id, :url)
                                 """
                             ),
-                            {"textbook_id": textbook_id, "url": url}
+                            {"textbook_id": textbook_id, "url": url},
                         )
         print("done creating fake classes...")

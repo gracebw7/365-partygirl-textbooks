@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator, ValidationError
@@ -17,6 +16,7 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+
 class Class(BaseModel):
     department: str
     course_number: int
@@ -24,13 +24,16 @@ class Class(BaseModel):
     professor_last: str
     professor_email: str
 
+
 class ClassIdResponse(BaseModel):
     class_id: int
+
 
 class ClassOut(BaseModel):
     id: int
     course_id: int
     professor_id: int
+
 
 @router.get("/", response_model=List[ClassOut])
 def get_all_classes():
@@ -43,7 +46,11 @@ def get_all_classes():
                 """
             )
         ).fetchall()
-        return [ClassOut(id=row.id, course_id=row.course_id, professor_id=row.professor_id) for row in rows]
+        return [
+            ClassOut(id=row.id, course_id=row.course_id, professor_id=row.professor_id)
+            for row in rows
+        ]
+
 
 @router.get("/{class_id}", response_model=ClassOut)
 def get_class_by_id(class_id: int):
@@ -56,28 +63,36 @@ def get_class_by_id(class_id: int):
                 WHERE id = :class_id
                 """
             ),
-            {"class_id": class_id}
+            {"class_id": class_id},
         ).first()
         if row is None:
             raise HTTPException(
-                status_code=404,
-                detail=f"Class with id {class_id} not found."
+                status_code=404, detail=f"Class with id {class_id} not found."
             )
-        return ClassOut(id=row.id, course_id=row.course_id, professor_id=row.professor_id)
-    
-#attempts to find a class with the given attributes, otherwise it creates one
+        return ClassOut(
+            id=row.id, course_id=row.course_id, professor_id=row.professor_id
+        )
+
+
+# attempts to find a class with the given attributes, otherwise it creates one
 @router.post("/", response_model=ClassIdResponse)
 def create_class(class_request: Class):
     try:
-        course_id = create_course(Course(department=class_request.department, number=class_request.course_number))
-        prof_id = create_professor(Professor(first=class_request.professor_first, last=class_request.professor_last, email=class_request.professor_email))
+        course_id = create_course(
+            Course(
+                department=class_request.department, number=class_request.course_number
+            )
+        )
+        prof_id = create_professor(
+            Professor(
+                first=class_request.professor_first,
+                last=class_request.professor_last,
+                email=class_request.professor_email,
+            )
+        )
     except ValidationError as e:
         errors = [
-            {
-                "loc":err["loc"],
-                "msg":err["msg"],
-                "type":err["type"]
-            }
+            {"loc": err["loc"], "msg": err["msg"], "type": err["type"]}
             for err in e.errors()
         ]
         raise HTTPException(status_code=422, detail=errors)
@@ -107,5 +122,5 @@ def create_class(class_request: Class):
             ),
             {"course_id": course_id.course_id, "professor_id": prof_id.prof_id},
         ).scalar_one()
-    
+
     return ClassIdResponse(class_id=ret_id)
