@@ -59,7 +59,18 @@ than in professors and classes.
 - Get Classbook By Id: 0.0122
 
 # Performance Tuning
+1. ![image](https://github.com/user-attachments/assets/3cf24ef1-c909-42be-8e24-a4849c200774)
+2. ![image](https://github.com/user-attachments/assets/4031c303-3732-472b-a90d-a1c4c806cc13)
+3. ![image](https://github.com/user-attachments/assets/03930818-83db-40cf-8b71-cdcc6440268f)
+
+The above images are our EXPLAIN ANALYZE queries for the same example in which we collected the runtime as we were measuring performance. As you can see, the bottleneck in the performance is the second query where we filter the textbooks based on class_id. The query planner further shows that a very large number of rows are filtered, 99980 to be exact. Therefore, we can optimize this by creating an Index for the textbook_classes table for filtering by id. The below sql query accomplishes this.
+
 ```SQL
 CREATE INDEX idx_textbook_classes_class_id
 ON textbook_classes (class_id);
 ```
+# Results
+After running the above query, we see the results as shown in the image below. It is extremely more efficient (From 15 ms to 0.09 ms) and the query planner even shows that it uses our newly created database index!
+![image](https://github.com/user-attachments/assets/72b9325d-5cd6-44c2-b762-d7f0967738aa)
+
+
