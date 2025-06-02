@@ -84,7 +84,7 @@ def create_link(link:Link):
                     RETURNING id
                     """
                 ),
-                {"textbook_id": link.textbook_id, "url": link.url},
+                {"textbook_id": link.textbook_id, "url": str(link.url)},
             ).scalar_one()
 
         return LinkIdResponse(link_id=ret_id)
@@ -130,7 +130,7 @@ def delete_link(link_id: int):
         result = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT id for update FROM links WHERE id = :link_id
+                SELECT id FROM links WHERE id = :link_id for update
                 """
             ),
             {"link_id": link_id}
