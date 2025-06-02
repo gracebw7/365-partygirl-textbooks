@@ -4,8 +4,8 @@ We originally had a number of issues with our search, including a split endpoint
 **Delete Endpoint Comment**:
 We received a comment about our delete link endpoints, since we have both "request delete" and a true "delete link". Since this project doesn't have a frontend, it's a bit confusing on why we have both, but the thought is that the user will have access to the request endpoint, and admin will have access to the true delete endpoint. For testing purposes, though, we currently have both.
 
-**Alex Truong Product Ideas**:
-We already have a schedule endpoint where users can input a full schedule to get textbooks. Our updated search function also allows for getting textbooks by class.
+**Alex Truong Product Ideas + Additional Post Endpoint**:
+We already have a schedule endpoint where users can input a full schedule to get textbooks. Our updated search function also allows for getting textbooks by class. For the additional departments POST endpoint, department creation is already covered by class/courses/professors/textbooks, and adding a specifc department endpoint would just be confusing.
 
 **Jake Cheung Product Ideas**:
 Our search endpoint covers the functionality of get-by-course. We believe we don't necessarily need to delete courses that are no longer offered, since (1) they may be offered again in the future and (2) if they are not offered, no one will be searching for them.
