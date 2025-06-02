@@ -1,8 +1,8 @@
-#**Fake Data Modeling**
+# Fake Data Modeling
 
-Python file for adding data: ____
+Python file for adding data: populate.py
 
-#**Performance Results**
+# Adding Data
 
 Rows Added:
  - 500 professors to professor table
@@ -18,7 +18,7 @@ to have 10 links. Considering how many links one could easily find on the intern
 are a few places where our service might not scale in exactly this way, it seems likely that we will scale much more in the textbooks and links tables rather
 than in professors and classes.
 
-#**Performance Results**
+# Performance Results
 ## Textbooks
 - Get All Textbooks: 0.0059 ms
 - Create Textbook: 0.0094 ms
@@ -57,5 +57,6 @@ than in professors and classes.
 - Get All Classbooks: 0.0035
 - Create Classbook: 0.0325
 - Get Classbook By Id: 0.0122
-#**Performance Tuning**
+
+# Performance Tuning
 
