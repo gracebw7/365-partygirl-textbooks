@@ -30,3 +30,23 @@ Our search endpoint covers the functionality of get-by-course. We believe we don
 - The course and professor classes now have field validation 
 - This is automatically checked with the POST /course and /professor endpoints and is manually checked with a try/catch for the create class endpoint
 
+# Optimized endpoints to directly query database
+- Most endpoints were optimized to directly query the database as opposed to referencing functions imported from other files, this was done to improve the efficiency and speed of our endpoints. 
+- However, a few files still use imports as we found the difference in speed to be not significant and the imported functions improved our codes readability and usability
+
+# Product Ideas Tyler Dang
+Tyler suggested the following endpoints:
+1. We could add a new endpoint which gives all of the classes that are being taught by one professor
+2. You could add time to the courses and add a new endpoint which gives you all of a specific courses that don't conflict in time
+We didn't implement the first endpoint as our service was directed at finding textbooks as opposed to finding the classes taught by a given professor. We also didn't implement the second endpoint as the time wasn't necessary to find the textbooks for the classes in a schedule.
+
+# Other Changes from Feedback
+- Added uniqueness constraints to the combination of class_id and textbook_id, the url in links for a given textbook, for each row in each table
+- We removed redundant endpoints such as delete textbooks/all_info
+- We changed all get and search endpoints use query parameters and post, put and delete use JSON parameters
+- We added idempotency for all endpoints and improved our error messages
+- We also implemented classes in Link and Classbook endpoints
+
+
+
+
